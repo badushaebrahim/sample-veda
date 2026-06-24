@@ -2,168 +2,150 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Menu, X, ShoppingBag, Shield, Activity, User, LogOut } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
 
-interface NavbarProps {
-  userRole?: "customer" | "factory" | "admin";
-  userName?: string;
-  cartCount?: number;
-}
-
-export const Navbar: React.FC<NavbarProps> = ({
-  userRole = "customer",
-  userName = "Atreya Dev",
+export const Navbar: React.FC<{ cartCount?: number; onCartClick?: () => void }> = ({
   cartCount = 0,
+  onCartClick,
 }) => {
+  const { data: session, status } = useSession();
   const [isOpen, setIsOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
-  const getLinksForRole = () => {
-    switch (userRole) {
-      case "admin":
-        return [
-          { label: "Marketplace", href: "/", icon: ShoppingBag },
-          { label: "Admin Console", href: "/admin", icon: Shield },
-          { label: "Inventory", href: "/factory", icon: Activity },
-        ];
-      case "factory":
-        return [
-          { label: "Inventory Manager", href: "/factory", icon: Activity },
-          { label: "View Storefront", href: "/", icon: ShoppingBag },
-        ];
-      default:
-        return [
-          { label: "Shop Products", href: "/", icon: ShoppingBag },
-          { label: "My Orders", href: "/orders", icon: User },
-        ];
-    }
-  };
+  const isAuthenticated = status === "authenticated";
+  const userName = session?.user?.name || "User";
+  const userInitial = userName.charAt(0).toUpperCase();
 
-  const navLinks = getLinksForRole();
+  const navLinks = [
+    { label: "Remedies", href: "/", active: true },
+    { label: "Herbs", href: "/" },
+    { label: "Consultations", href: "/" },
+    { label: "Wellness", href: "/" },
+  ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-cream-50/90 backdrop-blur-md border-b border-cream-200/50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2">
-              <span className="text-xl font-serif font-bold text-primary tracking-wide">
-                Stitch <span className="text-secondary font-sans font-semibold">Veda</span>
-              </span>
-              <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] tracking-wider font-semibold uppercase bg-primary/10 text-primary-dark rounded">
-                Ayurveda
-              </span>
-            </Link>
+    <nav className="sticky top-0 z-50 bg-surface-container-low/80 backdrop-blur-md shadow-sm">
+      <div className="max-w-[1200px] mx-auto flex justify-between items-center px-4 md:px-8 py-4">
+        {/* Logo + Desktop Nav */}
+        <div className="flex items-center gap-8">
+          <Link href="/" className="font-bold text-2xl text-secondary">
+            Pharmpill Biotech
+          </Link>
+          <div className="hidden md:flex gap-6 items-center">
+            {navLinks.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className={`text-sm font-semibold transition-colors duration-200 ${
+                  link.active
+                    ? "text-secondary border-b-2 border-secondary pb-1"
+                    : "text-on-surface-variant hover:text-secondary"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex ml-10 space-x-6">
-              {navLinks.map((link) => {
-                const Icon = link.icon;
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-cream-900/85 hover:text-primary transition-colors"
-                  >
-                    <Icon className="w-4 h-4 text-primary/75" />
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </div>
+        {/* Right Actions */}
+        <div className="flex items-center gap-3">
+          {/* Search (desktop only) */}
+          <div className="hidden lg:flex items-center bg-surface-container px-4 py-2 rounded-full border border-soft-sage/30">
+            <span className="material-symbols-outlined text-on-surface-variant mr-2 text-xl">search</span>
+            <input className="bg-transparent border-none focus:ring-0 text-sm w-44 outline-none placeholder:text-on-surface-variant/60" placeholder="Search remedies..." type="text" />
           </div>
 
-          {/* User Profile & Actions */}
-          <div className="hidden md:flex items-center gap-4">
-            {userRole === "customer" && (
-              <button className="relative p-2 text-primary hover:bg-primary/5 rounded-full transition-colors">
-                <ShoppingBag className="w-5.5 h-5.5" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-secondary text-cream-50 text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full animate-bounce">
-                    {cartCount}
-                  </span>
-                )}
-              </button>
+          {/* Cart */}
+          <button
+            onClick={onCartClick}
+            className="relative p-2 text-on-surface-variant hover:text-secondary rounded-full hover:bg-secondary-container/20 transition-all active:scale-95"
+          >
+            <span className="material-symbols-outlined">shopping_cart</span>
+            {cartCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 bg-warm-ochre text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                {cartCount}
+              </span>
             )}
+          </button>
 
-            <div className="h-6 w-[1px] bg-cream-200"></div>
-
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <div className="text-sm font-semibold text-primary-dark leading-tight">
-                  {userName}
-                </div>
-                <div className="text-[10px] font-semibold tracking-wide text-secondary uppercase leading-none">
-                  {userRole}
-                </div>
-              </div>
-              <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold">
-                {userName.charAt(0)}
-              </div>
-              <button className="p-2 text-cream-900/55 hover:text-red-700 rounded-full hover:bg-red-50 transition-all">
-                <LogOut className="w-4 h-4" />
+          {/* User */}
+          {isAuthenticated ? (
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-bold text-sm hover:ring-2 hover:ring-secondary/30 transition-all"
+              >
+                {userInitial}
               </button>
+              {showUserMenu && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
+                  <div className="absolute right-0 mt-2 w-56 bg-card-surface rounded-xl border border-soft-sage/20 shadow-xl z-50 animate-scale-up overflow-hidden">
+                    <div className="px-4 py-3 border-b border-outline-variant/20">
+                      <p className="text-sm font-bold text-on-surface">{userName}</p>
+                      <p className="text-xs text-on-surface-variant">{session?.user?.email}</p>
+                    </div>
+                    <div className="p-1">
+                      <Link href="/profile" onClick={() => setShowUserMenu(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-on-surface-variant hover:bg-soft-sage/10 hover:text-secondary rounded-lg transition-all">
+                        <span className="material-symbols-outlined text-lg">person</span>
+                        My Profile
+                      </Link>
+                      <button
+                        onClick={() => signOut({ callbackUrl: "/" })}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-error hover:bg-error-container/20 rounded-lg transition-all"
+                      >
+                        <span className="material-symbols-outlined text-lg">logout</span>
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="flex items-center md:hidden gap-3">
-            {userRole === "customer" && (
-              <button className="relative p-2 text-primary">
-                <ShoppingBag className="w-5.5 h-5.5" />
-                {cartCount > 0 && (
-                  <span className="absolute top-1 right-1 bg-secondary text-cream-50 text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                    {cartCount}
-                  </span>
-                )}
-              </button>
-            )}
-            
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-lg text-primary hover:bg-primary/5 focus:outline-none"
+          ) : (
+            <Link
+              href="/auth/signin"
+              className="p-2 text-on-surface-variant hover:text-secondary rounded-full hover:bg-secondary-container/20 transition-all active:scale-95"
             >
-              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
+              <span className="material-symbols-outlined">account_circle</span>
+            </Link>
+          )}
+
+          {/* Mobile hamburger */}
+          <button onClick={() => setIsOpen(!isOpen)} className="md:hidden p-2 text-on-surface-variant hover:text-secondary rounded-lg">
+            <span className="material-symbols-outlined text-2xl">{isOpen ? "close" : "menu"}</span>
+          </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden animate-fade-in bg-cream-50 border-b border-cream-200">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-3 py-3 text-base font-semibold text-cream-900 hover:bg-primary/5 hover:text-primary rounded-lg transition-all"
-                >
-                  <Icon className="w-5 h-5 text-primary" />
-                  {link.label}
-                </Link>
-              );
-            })}
+        <div className="md:hidden animate-fade-in bg-surface border-t border-outline-variant/20 pb-4">
+          <div className="px-4 pt-2 space-y-1">
+            {navLinks.map((link) => (
+              <Link key={link.label} href={link.href} onClick={() => setIsOpen(false)} className="flex items-center px-3 py-3 text-base font-semibold text-on-surface hover:bg-soft-sage/10 hover:text-secondary rounded-lg transition-all">
+                {link.label}
+              </Link>
+            ))}
           </div>
-          <div className="pt-4 pb-3 border-t border-cream-200/60 px-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-lg">
-                {userName.charAt(0)}
+          <div className="px-4 pt-3 border-t border-outline-variant/20 mt-2">
+            {isAuthenticated ? (
+              <div className="flex flex-col gap-2">
+                <Link href="/profile" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-on-surface hover:bg-soft-sage/10 rounded-lg">
+                  <span className="material-symbols-outlined text-secondary">person</span>
+                  My Profile
+                </Link>
+                <button onClick={() => signOut({ callbackUrl: "/" })} className="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-error hover:bg-error-container/20 rounded-lg">
+                  <span className="material-symbols-outlined">logout</span>
+                  Sign Out
+                </button>
               </div>
-              <div>
-                <div className="text-base font-bold text-primary-dark">{userName}</div>
-                <div className="text-xs font-semibold text-secondary uppercase">{userRole}</div>
-              </div>
-            </div>
-            <div className="mt-4 flex flex-col gap-2">
-              <button className="flex w-full items-center justify-center gap-2 px-4 py-2 text-sm font-semibold border border-red-700/30 text-red-700 hover:bg-red-50 rounded-lg transition-colors">
-                <LogOut className="w-4 h-4" />
-                Sign Out
-              </button>
-            </div>
+            ) : (
+              <Link href="/auth/signin" onClick={() => setIsOpen(false)} className="flex items-center justify-center gap-2 px-4 py-3 bg-secondary text-on-secondary rounded-lg font-semibold">
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
       )}
