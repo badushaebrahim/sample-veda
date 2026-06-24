@@ -1,0 +1,413 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>AyurVida Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Source+Serif+4:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "secondary-container": "#adf3b8",
+                "on-tertiary-container": "#cd91a2",
+                "on-surface": "#1a1c19",
+                "on-surface-variant": "#424840",
+                "secondary": "#296b3c",
+                "secondary-fixed": "#adf3b8",
+                "surface-container-highest": "#e2e3de",
+                "on-error-container": "#93000a",
+                "on-primary-container": "#86ab83",
+                "text-main": "#2B2B2B",
+                "on-secondary-fixed-variant": "#0a5226",
+                "surface-container-lowest": "#ffffff",
+                "surface-container-high": "#e8e8e3",
+                "warm-ochre": "#D4A373",
+                "card-surface": "#FFFFFF",
+                "surface": "#fafaf4",
+                "on-secondary-fixed": "#00210b",
+                "on-tertiary-fixed-variant": "#673848",
+                "primary-fixed": "#c5edc1",
+                "inverse-on-surface": "#f1f1ec",
+                "surface-dim": "#dadad5",
+                "primary-fixed-dim": "#aad1a6",
+                "error": "#ba1a1a",
+                "outline-variant": "#c2c8be",
+                "on-secondary-container": "#307142",
+                "primary": "#07290c",
+                "surface-container": "#eeeee9",
+                "surface-bright": "#fafaf4",
+                "on-secondary": "#ffffff",
+                "primary-container": "#1e3f20",
+                "on-primary-fixed-variant": "#2d4e2e",
+                "error-container": "#ffdad6",
+                "on-tertiary-fixed": "#340e1d",
+                "on-error": "#ffffff",
+                "tertiary-fixed": "#ffd9e2",
+                "soft-sage": "#A3B899",
+                "outline": "#737970",
+                "inverse-primary": "#aad1a6",
+                "tertiary-container": "#562a39",
+                "surface-container-low": "#f4f4ef",
+                "tertiary-fixed-dim": "#f5b5c7",
+                "background": "#fafaf4",
+                "on-background": "#1a1c19",
+                "on-primary-fixed": "#012106",
+                "on-primary": "#ffffff",
+                "bg-organic": "#FAFAF7",
+                "on-tertiary": "#ffffff",
+                "secondary-fixed-dim": "#92d69d",
+                "surface-tint": "#446744",
+                "inverse-surface": "#2f312e",
+                "tertiary": "#3c1524",
+                "surface-variant": "#e2e3de"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "container-max": "1200px",
+                "gutter-max": "2rem",
+                "gutter-min": "1rem",
+                "margin-mobile": "5%"
+            },
+            "fontFamily": {
+                "headline-lg": ["manrope"],
+                "body-lg": ["sourceSerif4"],
+                "headline-sm": ["manrope"],
+                "headline-lg-mobile": ["manrope"],
+                "headline-md-mobile": ["manrope"],
+                "body-md": ["sourceSerif4"],
+                "headline-md": ["manrope"],
+                "label-md": ["manrope"]
+            },
+            "fontSize": {
+                "headline-lg": ["48px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                "body-lg": ["16px", {"lineHeight": "1.7", "fontWeight": "400"}],
+                "headline-sm": ["22.4px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                "headline-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                "headline-md-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                "headline-md": ["36px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #fafaf4;
+            color: #1a1c19;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .sidebar-active {
+            background-color: #adf3b8; /* secondary-container */
+            color: #307142; /* on-secondary-container */
+            border-radius: 0.5rem;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #A3B899;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+<!-- SIDE NAVBAR -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-surface-container border-r border-soft-sage/20 flex flex-col transition-all duration-300 ease-in-out z-50">
+<!-- Brand Header -->
+<div class="px-6 py-8 flex flex-col gap-2">
+<h1 class="font-headline-sm text-headline-sm text-secondary font-bold">Pharmpill Biotech Admin</h1>
+<p class="text-on-surface-variant opacity-70 text-[12px] uppercase tracking-wider font-semibold">Internal Management</p>
+</div>
+<!-- Main Navigation -->
+<nav class="flex-1 px-2 space-y-1 custom-scrollbar overflow-y-auto">
+<a class="sidebar-active flex items-center px-4 py-3 gap-3 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="text-on-surface-variant hover:bg-soft-sage/10 flex items-center px-4 py-3 gap-3 transition-all duration-300 rounded-lg" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-md text-label-md">Inventory</span>
+</a>
+<a class="text-on-surface-variant hover:bg-soft-sage/10 flex items-center px-4 py-3 gap-3 transition-all duration-300 rounded-lg" href="#">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="font-label-md text-label-md">Orders</span>
+</a>
+<a class="text-on-surface-variant hover:bg-soft-sage/10 flex items-center px-4 py-3 gap-3 transition-all duration-300 rounded-lg" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Customers</span>
+</a>
+<a class="text-on-surface-variant hover:bg-soft-sage/10 flex items-center px-4 py-3 gap-3 transition-all duration-300 rounded-lg" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-label-md text-label-md">Analytics</span>
+</a>
+</nav>
+<!-- CTA & Footer -->
+<div class="p-4 border-t border-soft-sage/20">
+<button class="w-full bg-secondary text-white py-3 rounded-lg font-label-md text-label-md flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all mb-4 shadow-sm">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                Add Product
+            </button>
+<div class="space-y-1">
+<a class="text-on-surface-variant hover:bg-soft-sage/10 flex items-center px-4 py-2 gap-3 transition-all duration-300 rounded-lg" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<a class="text-on-surface-variant hover:bg-soft-sage/10 flex items-center px-4 py-2 gap-3 transition-all duration-300 rounded-lg" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+<!-- Profile Mini -->
+<div class="mt-6 flex items-center gap-3 px-2">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-soft-sage/30">
+<img class="w-full h-full object-cover" data-alt="A professional studio portrait of a modern healthcare administrator with a warm and approachable expression. The individual is dressed in a clean, minimalist white linen shirt, reflecting the brand's organic and pure aesthetic. The background is a soft, out-of-focus botanical garden with lush greenery and warm sunlight filtering through leaves." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyIOoz1hRbu9dCBb4e6Z75wqMY4kL782ReSmRYVFqziUpsikN43c0Zk-IQp7KpiipBu4p_Y3bXlTT0XBNCQymGJ4eEdtLAO0fh-XX2Vc8XW3KD2F7TM9iNqteGxo7vAxdUKXuO-Kmo2ix10qjrahDqxzuWN6j63E8euX8vG5g1nJpw5Ga5No7f46Rp1m0X0VHiVOTi5ObIVJf6Nt6iCEkOifvb2IKTMPtZPkiiJJe33iL8gnJciWiWe7EE09k3efK6JJDPRdAuMic">
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Admin Profile</span>
+<span class="text-[11px] text-on-surface-variant">Systems Manager</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- MAIN CONTENT AREA -->
+<main class="ml-64 min-h-screen p-8 max-w-container-max mx-auto">
+<!-- Header -->
+<header class="mb-10 flex justify-between items-end">
+<div class="flex flex-col gap-1">
+<h2 class="font-headline-md text-headline-md text-primary">Dashboard Overview</h2>
+<p class="text-on-surface-variant font-body-md text-body-md italic">Rooted in ancient wisdom, managed with modern precision.</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container rounded-lg border-none focus:ring-2 focus:ring-secondary/30 text-body-md w-64" placeholder="Search orders, herbs..." type="text">
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container text-on-surface-variant hover:bg-soft-sage/20 transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+<!-- STATS GRID -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+<!-- Total Revenue -->
+<div class="bg-card-surface p-6 rounded-xl border border-soft-sage/20 shadow-sm hover:-translate-y-1 transition-all duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-secondary-container/30 rounded-lg text-secondary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<span class="text-[12px] font-bold text-secondary bg-secondary-container px-2 py-1 rounded">+12.5%</span>
+</div>
+<h3 class="text-on-surface-variant font-label-md text-label-md mb-1 uppercase tracking-wider">Total Revenue</h3>
+<p class="font-headline-sm text-headline-sm text-on-surface">$42,850.00</p>
+</div>
+<!-- Active Orders -->
+<div class="bg-card-surface p-6 rounded-xl border border-soft-sage/20 shadow-sm hover:-translate-y-1 transition-all duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-warm-ochre/10 rounded-lg text-warm-ochre">
+<span class="material-symbols-outlined">shopping_cart</span>
+</div>
+<span class="text-[12px] font-bold text-warm-ochre bg-warm-ochre/20 px-2 py-1 rounded">Active</span>
+</div>
+<h3 class="text-on-surface-variant font-label-md text-label-md mb-1 uppercase tracking-wider">Active Orders</h3>
+<p class="font-headline-sm text-headline-sm text-on-surface">156</p>
+</div>
+<!-- Low Stock -->
+<div class="bg-card-surface p-6 rounded-xl border border-soft-sage/20 shadow-sm hover:-translate-y-1 transition-all duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-error-container/30 rounded-lg text-error">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<span class="text-[12px] font-bold text-error bg-error-container px-2 py-1 rounded">Action Needed</span>
+</div>
+<h3 class="text-on-surface-variant font-label-md text-label-md mb-1 uppercase tracking-wider">Low Stock Items</h3>
+<p class="font-headline-sm text-headline-sm text-on-surface">12</p>
+</div>
+</section>
+<!-- BENTO STYLE CONTENT -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- RECENT ORDERS TABLE -->
+<div class="lg:col-span-2 bg-card-surface rounded-xl border border-soft-sage/20 shadow-sm flex flex-col">
+<div class="p-6 border-b border-soft-sage/10 flex justify-between items-center">
+<h3 class="font-headline-sm text-headline-sm text-primary">Recent Orders</h3>
+<button class="text-secondary font-label-md text-label-md hover:underline">View All</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-surface-container-low">
+<tr>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Order ID</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Customer</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Product</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Status</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Amount</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-soft-sage/10">
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-6 py-4 font-label-md">#AV-8921</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-on-surface font-semibold">Elena Gilbert</span>
+<span class="text-[12px] text-on-surface-variant">elena@example.com</span>
+</div>
+</td>
+<td class="px-6 py-4 text-on-surface-variant">Ashwagandha Gold</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 rounded-full text-[12px] font-bold bg-secondary-container text-on-secondary-container uppercase">Delivered</span>
+</td>
+<td class="px-6 py-4 text-right font-semibold">$89.00</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-6 py-4 font-label-md">#AV-8922</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-on-surface font-semibold">Julian Vane</span>
+<span class="text-[12px] text-on-surface-variant">vane.j@example.com</span>
+</div>
+</td>
+<td class="px-6 py-4 text-on-surface-variant">Triphala Extract</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 rounded-full text-[12px] font-bold bg-warm-ochre/20 text-warm-ochre uppercase">Shipped</span>
+</td>
+<td class="px-6 py-4 text-right font-semibold">$45.50</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-6 py-4 font-label-md">#AV-8923</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-on-surface font-semibold">Sofia Amaro</span>
+<span class="text-[12px] text-on-surface-variant">amaros@example.com</span>
+</div>
+</td>
+<td class="px-6 py-4 text-on-surface-variant">Holy Basil Tea</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 rounded-full text-[12px] font-bold bg-soft-sage/30 text-on-surface-variant uppercase">Processing</span>
+</td>
+<td class="px-6 py-4 text-right font-semibold">$32.00</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-6 py-4 font-label-md">#AV-8924</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-on-surface font-semibold">Marcus Chen</span>
+<span class="text-[12px] text-on-surface-variant">m.chen@example.com</span>
+</div>
+</td>
+<td class="px-6 py-4 text-on-surface-variant">Turmeric Glow Kit</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 rounded-full text-[12px] font-bold bg-error-container text-error uppercase">Urgent</span>
+</td>
+<td class="px-6 py-4 text-right font-semibold">$124.99</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- ASYMMETRIC TOP HERBS & ACTIVITY -->
+<div class="flex flex-col gap-8">
+<!-- Top Herbs Chart Placeholder -->
+<div class="bg-secondary p-8 rounded-xl text-white flex flex-col h-full relative overflow-hidden">
+<div class="relative z-10">
+<h3 class="font-headline-sm text-headline-sm mb-4">Inventory Insights</h3>
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<span class="font-label-md">Ashwagandha</span>
+<div class="w-24 h-2 bg-white/20 rounded-full overflow-hidden">
+<div class="bg-secondary-container h-full w-[85%]"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-label-md">Brahmi Gold</span>
+<div class="w-24 h-2 bg-white/20 rounded-full overflow-hidden">
+<div class="bg-secondary-container h-full w-[62%]"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-label-md">Neem Pure</span>
+<div class="w-24 h-2 bg-white/20 rounded-full overflow-hidden">
+<div class="bg-secondary-container h-full w-[41%]"></div>
+</div>
+</div>
+</div>
+<p class="mt-8 text-[13px] opacity-80 leading-relaxed italic">"Restocking highly recommended for Brahmi within the next 48 hours to meet surge demand."</p>
+</div>
+<!-- Abstract Background Decorative Element -->
+<div class="absolute -bottom-10 -right-10 w-40 h-40 bg-secondary-container/10 rounded-full blur-3xl"></div>
+</div>
+<!-- System Health Card -->
+<div class="bg-surface-container p-6 rounded-xl border border-soft-sage/20">
+<h4 class="font-label-md text-label-md text-primary mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+                        System Integrity
+                    </h4>
+<div class="flex items-center gap-4">
+<div class="flex-1">
+<div class="h-1 bg-soft-sage/20 rounded-full overflow-hidden mb-2">
+<div class="h-full bg-secondary w-[99.8%]"></div>
+</div>
+<span class="text-[12px] text-on-surface-variant uppercase font-bold">99.8% Uptime</span>
+</div>
+<span class="material-symbols-outlined text-secondary">cloud_done</span>
+</div>
+</div>
+</div>
+</section>
+<!-- FOOTER (Internal) -->
+<footer class="mt-16 py-8 border-t border-soft-sage/10 flex flex-col md:flex-row justify-between items-center gap-4">
+<span class="text-on-surface-variant opacity-60 text-[12px]">© 2024 AyurVida. Rooted in Ancient Wisdom. Internal Admin Panel v2.4.0</span>
+<div class="flex gap-6">
+<a class="text-on-surface-variant hover:text-secondary text-[12px] transition-colors" href="#">System Status</a>
+<a class="text-on-surface-variant hover:text-secondary text-[12px] transition-colors" href="#">Developer API</a>
+<a class="text-on-surface-variant hover:text-secondary text-[12px] transition-colors" href="#">Privacy Guarantee</a>
+</div>
+</footer>
+</main>
+<!-- Interactions Script -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Hover effect for table rows
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                row.addEventListener('mouseenter', () => {
+                    row.style.transform = 'scale(1.005)';
+                    row.style.transition = 'all 0.2s ease-in-out';
+                });
+                row.addEventListener('mouseleave', () => {
+                    row.style.transform = 'scale(1)';
+                });
+            });
+
+            // Smooth scale for stats cards
+            const cards = document.querySelectorAll('section > div');
+            cards.forEach(card => {
+                card.addEventListener('mousedown', () => {
+                    card.style.transform = 'scale(0.98)';
+                });
+                card.addEventListener('mouseup', () => {
+                    card.style.transform = 'scale(1)';
+                });
+            });
+        });
+    </script>
+
+
+</body></html>

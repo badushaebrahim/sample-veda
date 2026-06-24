@@ -1,0 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Outfit:wght@300..900&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  /* HSL Palette */
+  --background: 34 33% 98%;    /* Warm cream base #FAF8F5 */
+  --foreground: 20 12% 16%;    /* Deep charcoal soil #2B2825 */
+  
+  --primary: 153 37% 17%;     /* Deep Forest Green #1B3B2B */
+  --primary-light: 154 22% 35%; /* Medium Sage #456B56 */
+  --primary-dark: 155 45% 10%;  /* Dark Forest #0E2218 */
+  
+  --secondary: 13 58% 52%;     /* Terracotta #D46A43 */
+  --secondary-light: 13 60% 60%; /* Warm Terracotta #E08563 */
+  --secondary-dark: 13 65% 40%;  /* Rich Burnt Ochre #AC4A25 */
+  
+  --gold: 38 60% 50%;          /* Warm Marigold #D19A2E */
+  --gold-light: 38 65% 65%;    /* Soft Gold #E5BE6C */
+  
+  --cream-50: 36 33% 98%;      /* #FAF8F5 */
+  --cream-100: 35 25% 95%;     /* #F4EFEB */
+  --cream-200: 34 20% 90%;     /* #E6DDD6 */
+  --cream-300: 34 16% 83%;     /* #D4C7BC */
+  --cream-900: 20 12% 16%;     /* #2B2825 */
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  
+  --color-primary: hsl(var(--primary));
+  --color-primary-light: hsl(var(--primary-light));
+  --color-primary-dark: hsl(var(--primary-dark));
+  
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-light: hsl(var(--secondary-light));
+  --color-secondary-dark: hsl(var(--secondary-dark));
+  
+  --color-gold: hsl(var(--gold));
+  --color-gold-light: hsl(var(--gold-light));
+  
+  --color-cream-50: hsl(var(--cream-50));
+  --color-cream-100: hsl(var(--cream-100));
+  --color-cream-200: hsl(var(--cream-200));
+  --color-cream-300: hsl(var(--cream-300));
+  --color-cream-900: hsl(var(--cream-900));
+
+  --font-sans: 'Outfit', sans-serif;
+  --font-serif: 'Lora', serif;
+
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-slide-up: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-scale-up: scale-up 0.2s ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes scale-up {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Custom Base Styles */
+body {
+  background-color: hsl(var(--cream-50));
+  color: hsl(var(--foreground));
+  font-family: 'Outfit', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Lora', serif;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--cream-100));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--cream-300));
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary-light));
+}
+
+/* Input Styles */
+input, select, textarea {
+  transition: all 0.2s ease;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsla(var(--primary), 0.15);
+}

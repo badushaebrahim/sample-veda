@@ -1,0 +1,407 @@
+<!DOCTYPE html><html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>AyurVida | Ancient Wisdom for Modern Wellness</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Source+Serif+4:opsz,wght@8..60,400;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-container": "#adf3b8",
+                    "on-tertiary-container": "#cd91a2",
+                    "on-surface": "#1a1c19",
+                    "on-surface-variant": "#424840",
+                    "secondary": "#296b3c",
+                    "secondary-fixed": "#adf3b8",
+                    "surface-container-highest": "#e2e3de",
+                    "on-error-container": "#93000a",
+                    "on-primary-container": "#86ab83",
+                    "text-main": "#2B2B2B",
+                    "on-secondary-fixed-variant": "#0a5226",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-high": "#e8e8e3",
+                    "warm-ochre": "#D4A373",
+                    "card-surface": "#FFFFFF",
+                    "surface": "#fafaf4",
+                    "on-secondary-fixed": "#00210b",
+                    "on-tertiary-fixed-variant": "#673848",
+                    "primary-fixed": "#c5edc1",
+                    "inverse-on-surface": "#f1f1ec",
+                    "surface-dim": "#dadad5",
+                    "primary-fixed-dim": "#aad1a6",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#c2c8be",
+                    "on-secondary-container": "#307142",
+                    "primary": "#07290c",
+                    "surface-container": "#eeeee9",
+                    "surface-bright": "#fafaf4",
+                    "on-secondary": "#ffffff",
+                    "primary-container": "#1e3f20",
+                    "on-primary-fixed-variant": "#2d4e2e",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-fixed": "#340e1d",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed": "#ffd9e2",
+                    "soft-sage": "#A3B899",
+                    "outline": "#737970",
+                    "inverse-primary": "#aad1a6",
+                    "tertiary-container": "#562a39",
+                    "surface-container-low": "#f4f4ef",
+                    "tertiary-fixed-dim": "#f5b5c7",
+                    "background": "#fafaf4",
+                    "on-background": "#1a1c19",
+                    "on-primary-fixed": "#012106",
+                    "on-primary": "#ffffff",
+                    "bg-organic": "#FAFAF7",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed-dim": "#92d69d",
+                    "surface-tint": "#446744",
+                    "inverse-surface": "#2f312e",
+                    "tertiary": "#3c1524",
+                    "surface-variant": "#e2e3de"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "container-max": "1200px",
+                    "gutter-max": "2rem",
+                    "gutter-min": "1rem",
+                    "margin-mobile": "5%"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Manrope"],
+                    "body-lg": ["Source Serif 4"],
+                    "headline-sm": ["Manrope"],
+                    "headline-lg-mobile": ["Manrope"],
+                    "headline-md-mobile": ["Manrope"],
+                    "body-md": ["Source Serif 4"],
+                    "headline-md": ["Manrope"],
+                    "label-md": ["Manrope"]
+            },
+            "fontSize": {
+                    "headline-lg": ["48px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "1.7", "fontWeight": "400"}],
+                    "headline-sm": ["22.4px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "headline-md-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-md": ["36px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .organic-shape {
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, rgba(250, 250, 244, 0.9) 0%, rgba(163, 184, 153, 0.1) 100%);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #A3B899;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body-md text-on-surface">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-50 bg-surface-container-low/80 backdrop-blur-md shadow-sm">
+<nav class="max-w-container-max mx-auto flex justify-between items-center px-gutter-min md:px-gutter-max py-4">
+<a class="font-headline-md text-headline-md font-bold text-secondary" href="#">Pharmpill Biotech</a>
+<div class="hidden md:flex gap-8 items-center">
+<a class="font-headline-sm text-headline-sm text-secondary border-b-2 border-secondary pb-1 hover:text-secondary transition-colors duration-200" href="#">Remedies</a>
+<a class="font-headline-sm text-headline-sm text-on-surface-variant hover:text-secondary transition-colors duration-200" href="#">Herbs</a>
+<a class="font-headline-sm text-headline-sm text-on-surface-variant hover:text-secondary transition-colors duration-200" href="#">Consultations</a>
+<a class="font-headline-sm text-headline-sm text-on-surface-variant hover:text-secondary transition-colors duration-200" href="#">Wellness</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:text-secondary transition-all active:scale-95">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-secondary transition-all active:scale-95">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</nav>
+</header>
+<main>
+<!-- Hero Section -->
+<section class="relative min-h-[85vh] flex items-center overflow-hidden transition-all duration-700 ease-out opacity-100">
+<div class="absolute inset-0 z-0">
+<div class="absolute top-[-10%] right-[-5%] w-[60%] h-[120%] bg-soft-sage/10 organic-shape blur-3xl"></div>
+<div class="absolute bottom-[-20%] left-[-10%] w-[50%] h-[100%] bg-secondary/5 organic-shape blur-3xl"></div>
+</div>
+<div class="relative z-10 max-w-container-max mx-auto px-gutter-min md:px-gutter-max grid lg:grid-cols-2 gap-12 items-center w-full">
+<div class="flex flex-col gap-6">
+<span class="inline-block px-4 py-1.5 bg-secondary-container text-on-secondary-container font-label-md text-label-md rounded-full w-fit">
+                        Ancient Wisdom, Modern Delivery
+                    </span>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">
+                        Harmonize Your Life with <span class="text-secondary">Authentic Ayurveda</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-lg">
+                        Experience the profound healing of purity-guaranteed botanical remedies. Rooted in millennia-old traditions and crafted for your modern holistic journey.
+                    </p>
+<div class="flex flex-wrap gap-4 mt-4">
+<button class="px-8 py-4 bg-secondary text-on-secondary rounded-lg font-label-md text-label-md shadow-md hover:translate-y-[-2px] transition-all duration-300 active:scale-95">
+                            Shop All Remedies
+                        </button>
+<button class="px-8 py-4 border-2 border-soft-sage text-secondary rounded-lg font-label-md text-label-md hover:bg-soft-sage/10 transition-all duration-300">
+                            Our Philosophy
+                        </button>
+</div>
+</div>
+<div class="relative flex justify-center">
+<div class="relative w-full max-w-md">
+<div class="absolute -inset-4 bg-secondary/10 organic-shape animate-[pulse_6s_infinite]"></div>
+<img class="relative z-10 w-full h-auto drop-shadow-2xl rounded-2xl transform hover:scale-[1.02] transition-transform duration-500" data-alt="A premium, studio-lit photograph of a group of Ayurvedic herbal ingredients including fresh holy basil (tulsi) leaves, ginger root, and dried herbs scattered on a clean, white marble surface. The lighting is soft and natural, emphasizing a high-end minimalist organic aesthetic with shades of botanical green and soft cream. The mood is serene and medicinal." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDL8uVOsEAiguHmYxtKiGGWyAeh4YdcGAmTPzjtutuQNxyO89jsGge2WFD7omSDjmnUgx_b9G_YaHaKDoiTNAxa3W3Vixdj1U1_2469RmYncLxFC24FHm0gWRvCh2wivGlx_t99f33zuP0kn2oSlojpNuBz5kE2uFTT9T4K1I5cGtnTSrgC2Uh3vzjdV3OvkZwHymSV34vpk9d4NiB8bW7NRDEF_DNex4qzUbdsVGBYaPS1Xs3AQJXOePByRgQnOSyYgGkLBDghz70">
+<div class="absolute bottom-8 -right-8 bg-card-surface/90 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-soft-sage/20 hidden md:block max-w-[200px] z-20">
+<div class="flex items-center gap-2 mb-2 text-warm-ochre">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: &quot;FILL&quot; 1;">star</span>
+<span class="font-label-md text-label-md">Best Seller</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface">Tulsi Breathe Syrup</p>
+<p class="text-[12px] text-on-surface-variant mt-1">100% Organic Extracts</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured Remedies Grid -->
+<section class="py-24 bg-surface-container-low transition-all duration-700 ease-out opacity-100">
+<div class="max-w-container-max mx-auto px-gutter-min md:px-gutter-max">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+<div class="max-w-xl">
+<h2 class="font-headline-md text-headline-md text-primary mb-4">Featured Remedies</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Carefully curated formulations targeting specific health needs with the precision of ancient pharmacology.</p>
+</div>
+<a class="text-secondary font-label-md text-label-md flex items-center gap-2 hover:gap-3 transition-all" href="#">
+                        View All Categories <span class="material-symbols-outlined">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Featured Product: Karpoora Thulasi DX -->
+<div class="group bg-card-surface rounded-2xl overflow-hidden border border-soft-sage/10 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+<div class="relative h-80 bg-surface-container-high p-8 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsfiwct4dyoeHAh0O_cWsUlUxRd0idXg_OsKXVu1SU0ZGPU9QaYgUrHn41CcN4S3wysECVMKg58KBhkCMXUmkxr5MSQb_YNOAGeiat8dpMmak7Ua-uEIi0T_u12HqejqmMfBoQS9TKdBmK5Z2YHmP65Xy2v7gfXP2bg3EQfTaCAgOowsi2nrbSSDZKwaDsZ0JjU5qiNGuiwOcdeGG2i_J8jS7CJGkz1NORMAE8u1eeOwrcW4m53WZbFFOh4-whOAk8QIdGF8rGnHQ">
+<div class="absolute top-4 left-4 bg-warm-ochre text-white px-3 py-1 rounded-full font-label-md text-[12px]">Respiratory Health</div>
+</div>
+<div class="p-8">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-sm text-headline-sm text-primary">Karpoora Thulasi DX</h3>
+<span class="font-headline-sm text-headline-sm text-secondary">₹185</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 line-clamp-2">
+                                Ayurvedic Cough &amp; Cold Remedy fortified with the therapeutic benefits of Thulasi (Holy Basil) and Mulethi.
+                            </p>
+<button class="w-full py-3 bg-soft-sage/10 text-secondary border border-soft-sage/30 rounded-lg font-label-md text-label-md hover:bg-secondary hover:text-white transition-all duration-300 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                                Add to Cart
+                            </button>
+</div>
+</div>
+<!-- Product 2 -->
+<div class="group bg-card-surface rounded-2xl overflow-hidden border border-soft-sage/10 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+<div class="relative h-80 bg-surface-container-high p-8 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-500" data-alt="A premium Ayurvedic health product bottle made of dark amber glass with a clean white label featuring minimalist botanical illustrations of Ashwagandha roots. The bottle sits on a soft sage green surface with artistic shadows. High-end, medical-grade herbal aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgFSOVqVtlsE5_-hxAmOfNU2NeVzhXoA9ieAYmTZUScphK8zXx4vb_vWu0KMA6uAnwrawH24__A70rbBFLoOybFMm2qghpbVDEKomb23pidWJ0iI38BYjVoI_OyozPZn0OdoGA7esQIqQYIks_uZWT848P0rKjdBvxXYQlzRiNG4qR98k2xzDwJcUl1eCq17WLud-UQ_qJJe520tVeuPmTElfi5ABX77gSMGHMKL-QNB-s43NkygMD4Td6oETQrJN8qhvTLhppawE">
+<div class="absolute top-4 left-4 bg-secondary text-white px-3 py-1 rounded-full font-label-md text-[12px]">Stress Relief</div>
+</div>
+<div class="p-8">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-sm text-headline-sm text-primary">Ashwagandha Pro</h3>
+<span class="font-headline-sm text-headline-sm text-secondary">₹420</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 line-clamp-2">
+                                Pure root extract for cognitive support and cortisol regulation. Hand-harvested during peak potency.
+                            </p>
+<button class="w-full py-3 bg-soft-sage/10 text-secondary border border-soft-sage/30 rounded-lg font-label-md text-label-md hover:bg-secondary hover:text-white transition-all duration-300 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                                Add to Cart
+                            </button>
+</div>
+</div>
+<!-- Product 3 -->
+<div class="group bg-card-surface rounded-2xl overflow-hidden border border-soft-sage/10 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+<div class="relative h-80 bg-surface-container-high p-8 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-500" data-alt="A modern, high-end design for an Ayurvedic herbal tea tin. The tin is metallic copper-colored with embossed botanical leaf patterns. It is staged in a bright, airy zen garden setting with soft morning sunlight. The focus is on natural purity and luxury wellness." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZyv8eMXVAaj7w2aAqea2w5eSQiIjIAakgvk5IAz03f22kCjxhpSHihHBOb7ggoHuvkFWWajFiX8pbgLLT2n7dkzxDUKpSrQmQuqudhrQZ9e-sMm_UWwMb0avuB0X3O26vwyXz-HvzTV_NKJ4Kfbh2uQCQIRS27HJ1OgNlmTFus-fPlAOx_Qcmg167Onqm3NCU2lfdTCMf09IR2c0aUHFgr1p3HlIaHBoK5X7r_HPLTsRKcWagl8MfR51gStPRElYO-rZM8Y32ilY">
+<div class="absolute top-4 left-4 bg-warm-ochre text-white px-3 py-1 rounded-full font-label-md text-[12px]">Detox</div>
+</div>
+<div class="p-8">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-sm text-headline-sm text-primary">Triphala Gold Tea</h3>
+<span class="font-headline-sm text-headline-sm text-secondary">₹299</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 line-clamp-2">
+                                A gentle digestive tonic blend featuring three powerful fruits to cleanse and rejuvenate your internal system.
+                            </p>
+<button class="w-full py-3 bg-soft-sage/10 text-secondary border border-soft-sage/30 rounded-lg font-label-md text-label-md hover:bg-secondary hover:text-white transition-all duration-300 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                                Add to Cart
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Trust & Wisdom Section -->
+<section class="py-24 transition-all duration-700 ease-out opacity-100">
+<div class="max-w-container-max mx-auto px-gutter-min md:px-gutter-max">
+<div class="grid lg:grid-cols-2 gap-16 items-center">
+<div class="grid grid-cols-2 gap-4">
+<div class="aspect-square rounded-2xl overflow-hidden shadow-md translate-y-8">
+<img class="w-full h-full object-cover" data-alt="A close-up shot of a traditional Ayurvedic herbalist's hands carefully selecting fresh medicinal herbs from a wooden bowl. The lighting is earthy and warm, showcasing the textures of the plants and the organic nature of the process. High quality photography for a purity guarantee section." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxk71VZ6laYmRZGV7SJrth9pex8vz8My52jek5IEJlCKNljzn9UuhqRNr9_peXm2yoJ-Rns80WlTFNkMF8gRraWhtlVymPJ1-CTZNt-y4-L5mKzQY-4QNQQMP5e_2yEkCkbOq7_V1o4THUHLLiN-V6gqiMQIt2qgRNxFtizVTgfqPZnEKN516sByjbRkNmvY1gZqWPJuDd7cnO_sAeXiPFqZT7UZIMu7b5SKjjjEV5EbSg6bO1oVy--fNw5PckBclJa0m2SyHKUEA">
+</div>
+<div class="aspect-square rounded-2xl overflow-hidden shadow-md">
+<img class="w-full h-full object-cover" data-alt="A serene laboratory setting where modern science meets ancient tradition. Glass beakers with vibrant green herbal infusions are arranged neatly on a clean workstation. The atmosphere is professional, sterile, but integrated with nature. Represents the brand's commitment to quality and purity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeBDOMvp_lQ-eGrET6rDNBEyrpmA2a_O3CwP1wmxltxwCt4tyr3RL_zZKjJO5i2O-0s5ruPc_P-C2eLbacgrEWl9zCvzpyK48UDzh2fnptvATo6vGSnIjU84mw-dpTQcips4wr4wXitWYLb_Abw_YvZaUQikKo8vBQzUz2eXYdIgDymrZf55NT0hQoXYyYwsGgNNqQK1ulm_kFIZMm9kdljQNiuoOiUhleSI3QW8WqvPLK7iqRjS2uScwMn2A7oCWrhzlkbqdpOTo">
+</div>
+<div class="col-span-2 aspect-[16/9] rounded-2xl overflow-hidden shadow-md -translate-y-4">
+<img class="w-full h-full object-cover" data-alt="A wide panoramic view of a lush, misty medicinal herb farm at sunrise. Rows of green plants stretch towards the horizon under a soft golden sky. The scene evokes a sense of peace, authenticity, and the origin of pure ingredients. Minimalist landscape photography for a heritage brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1sgBGTFuawRf5byC3383iBsL2x9ZKjwFwP8ESDIyX2GmLviwT2sV9vSn4K-ZjKjkaKGKE2lyfmitYzqRyXROYJn5wXab-aqYiOodbs_3Yi7PVrzLjj92yzouY7PHb1zZzqLEtZDzzZ0J4ISqgE4h6qVgdUOUcv4HJSgHKr2HJLdfS4e8O0ZHK3LP11Nd9XZ8Wa8tnRxNlcgaFgyrHpI1nqPXrLTXA23vQMlKQCPcXUD64VFPkSMdQCYP4sxzUxaEFUoViilqWyvQ">
+</div>
+</div>
+<div class="flex flex-col gap-8">
+<h2 class="font-headline-md text-headline-md text-primary">The AyurVida Guarantee of Purity</h2>
+<div class="space-y-6">
+<div class="flex gap-4">
+<div class="flex-shrink-0 w-12 h-12 bg-secondary-container rounded-full flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">nature</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-primary mb-1">Source Integrity</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">We source our botanicals from ethical, wild-harvested, or organic sustainable farms across the Indian subcontinent.</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="flex-shrink-0 w-12 h-12 bg-secondary-container rounded-full flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">biotech</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-primary mb-1">Modern Validation</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Every batch is third-party lab tested for heavy metals, pesticides, and potency to ensure standard-setting safety.</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="flex-shrink-0 w-12 h-12 bg-secondary-container rounded-full flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">history_edu</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-primary mb-1">Ancient Wisdom</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Our formulations strictly adhere to the Charaka Samhita and Sushruta Samhita texts, preserved for generations.</p>
+</div>
+</div>
+</div>
+<button class="mt-4 px-8 py-4 bg-primary text-on-primary rounded-lg font-label-md text-label-md w-fit hover:opacity-90 transition-all">
+                            Learn About Our Process
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Newsletter / CTA -->
+<section class="py-24 bg-secondary transition-all duration-700 ease-out opacity-100">
+<div class="max-w-[800px] mx-auto px-gutter-min text-center text-on-secondary">
+<h2 class="font-headline-md text-headline-md mb-6">Begin Your Path to Balance</h2>
+<p class="font-body-lg text-body-lg opacity-90 mb-10">Join our community of over 50,000 wellness seekers. Get seasonal Ayurvedic tips and exclusive access to new herbal arrivals.</p>
+<form class="flex flex-col md:flex-row gap-4 max-w-md mx-auto" onsubmit="event.preventDefault();">
+<input class="flex-1 bg-white/10 border border-white/20 rounded-lg px-6 py-4 placeholder:text-white/50 focus:ring-2 focus:ring-secondary-container focus:border-transparent outline-none" placeholder="Your email address" type="email">
+<button class="bg-warm-ochre text-white px-8 py-4 rounded-lg font-label-md text-label-md hover:bg-opacity-90 transition-all">Subscribe</button>
+</form>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-high py-12 px-gutter-min md:px-gutter-max">
+<div class="max-w-container-max mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+<div class="flex flex-col gap-4">
+<a class="font-headline-sm text-headline-sm font-bold text-secondary" href="#">AyurVida</a>
+<p class="text-on-surface-variant max-w-xs">Connecting ancient herbal wisdom with modern life through pure, potent, and ethical remedies.</p>
+<div class="flex gap-4 mt-2">
+<a class="text-secondary hover:text-warm-ochre transition-colors" href="#"><span class="material-symbols-outlined">public</span></a>
+<a class="text-secondary hover:text-warm-ochre transition-colors" href="#"><span class="material-symbols-outlined">share</span></a>
+<a class="text-secondary hover:text-warm-ochre transition-colors" href="#"><span class="material-symbols-outlined">mail</span></a>
+</div>
+</div>
+<div class="flex flex-col gap-4">
+<h5 class="font-label-md text-label-md text-primary uppercase tracking-wider">Quick Links</h5>
+<ul class="space-y-2">
+<li class=""><a class="text-on-surface-variant hover:text-warm-ochre transition-colors" href="#">Purity Guarantee</a></li>
+<li class=""><a class="text-on-surface-variant hover:text-warm-ochre transition-colors" href="#">Herbalist Network</a></li>
+<li class=""><a class="text-on-surface-variant hover:text-warm-ochre transition-colors" href="#">Shipping Policy</a></li>
+<li class=""><a class="text-on-surface-variant hover:text-warm-ochre transition-colors" href="#">Contact Support</a></li>
+</ul>
+</div>
+<div class="flex flex-col gap-4">
+<h5 class="font-label-md text-label-md text-primary uppercase tracking-wider">Categories</h5>
+<ul class="space-y-2">
+<li class=""><a class="text-on-surface-variant hover:text-warm-ochre transition-colors" href="#">Immunity Boosters</a></li>
+<li class=""><a class="text-on-surface-variant hover:text-warm-ochre transition-colors" href="#">Digestive Wellness</a></li>
+<li class=""><a class="text-on-surface-variant hover:text-warm-ochre transition-colors" href="#">Stress Management</a></li>
+<li class=""><a class="text-on-surface-variant hover:text-warm-ochre transition-colors" href="#">Herbal Syrups</a></li>
+</ul>
+</div>
+<div class="flex flex-col gap-4">
+<h5 class="font-label-md text-label-md text-primary uppercase tracking-wider">Visit Us</h5>
+<p class="text-on-surface-variant">Ayurveda Bhawan, Heritage Lane<br>Rishikesh, Uttarakhand 249201</p>
+<p class="text-on-surface-variant">Phone: +91 1800-AYUR-VIDA</p>
+</div>
+</div>
+<div class="max-w-container-max mx-auto pt-8 border-t border-soft-sage/20 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="text-on-surface-variant text-[12px]">© 2024 AyurVida. Rooted in Ancient Wisdom.</p>
+<div class="flex gap-8 text-[12px] text-on-surface-variant">
+<a class="hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-secondary transition-colors" href="#">Terms of Service</a>
+</div>
+</div>
+</footer>
+<!-- FAB for quick search/chat -->
+<div class="fixed bottom-8 right-8 z-40">
+<button class="w-14 h-14 bg-warm-ochre text-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300">
+<span class="material-symbols-outlined">chat</span>
+</button>
+</div>
+<script>
+        // Smooth reveal on scroll interaction
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100');
+                    entry.target.classList.remove('opacity-0', 'translate-y-10');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section').forEach(section => {
+            section.classList.add('transition-all', 'duration-700', 'ease-out');
+            // Initial state for animation if not in viewport
+            if (section.getBoundingClientRect().top > window.innerHeight) {
+                // section.classList.add('opacity-0', 'translate-y-10'); // Disabled for initial render clarity
+            }
+            observer.observe(section);
+        });
+    </script>
+
+
+</body></html>
