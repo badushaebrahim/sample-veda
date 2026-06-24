@@ -26,6 +26,13 @@ export interface DashboardOrder {
   paymentStatus: "pending" | "paid" | "failed";
   shippingStatus: "pending" | "processing" | "shipped" | "delivered";
   createdAt: string;
+  shippingAddress?: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
 }
 
 interface OrderManagerProps {

@@ -5,7 +5,7 @@ import { User } from "@/models/User";
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, password } = await req.json();
+    const { name, email, password, role } = await req.json();
 
     // Basic validation
     if (!name || !email || !password) {
@@ -36,12 +36,15 @@ export async function POST(req: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    // Enforce customer role for all new self-registrations
+    const userRole = "customer";
+
     // Create user
     const user = await User.create({
       name: name.trim(),
       email: email.toLowerCase().trim(),
       password: hashedPassword,
-      role: "customer",
+      role: userRole,
     });
 
     return NextResponse.json(

@@ -14,11 +14,12 @@ export default function SignUpPage() {
     email: "",
     password: "",
     confirmPassword: "",
+    role: "customer",
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
@@ -46,6 +47,7 @@ export default function SignUpPage() {
           name: form.name,
           email: form.email,
           password: form.password,
+          role: form.role,
         }),
       });
 
@@ -194,6 +196,7 @@ export default function SignUpPage() {
                 id="signup-confirm-password"
               />
             </div>
+
 
             <Button
               type="submit"

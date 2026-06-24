@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
     const query: any = {};
     
-    if (category) {
+    if (category && category !== "All") {
       query.categories = category;
     }
     
@@ -25,7 +25,28 @@ export async function GET(req: NextRequest) {
       ];
     }
 
-    const products = await Product.find(query).sort({ createdAt: -1 });
+    let products = await Product.find(query).sort({ createdAt: -1 });
+
+    // Auto-seed if database is empty
+    if (products.length === 0 && !category && !search) {
+      const count = await Product.countDocuments();
+      if (count === 0) {
+        const { PRODUCTS } = require("@/lib/products");
+        // Prepare products for DB insert (delete client-side id format or keep it)
+        const productsToSeed = PRODUCTS.map((p: any) => ({
+          name: p.name,
+          description: p.description,
+          price: p.price,
+          stockQuantity: p.stockQuantity,
+          categories: p.categories,
+          imageUrls: p.imageUrls,
+          metadata: p.metadata,
+        }));
+        await Product.insertMany(productsToSeed);
+        products = await Product.find(query).sort({ createdAt: -1 });
+      }
+    }
+
     return NextResponse.json({ success: true, data: products }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json(
@@ -35,14 +56,22 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST /api/products - Create product (Admin only)
+// POST /api/products - Create product (Admin or Factory)
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session || (session.user as any).role !== "admin") {
+    if (!session) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized access. Admin role required." },
+        { success: false, error: "Unauthorized access. Login required." },
+        { status: 401 }
+      );
+    }
+
+    const role = (session.user as any).role;
+    if (role !== "admin" && role !== "factory") {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized access. Admin or Factory role required." },
         { status: 403 }
       );
     }

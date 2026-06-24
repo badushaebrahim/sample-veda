@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Navbar } from "@/components/layout/Navbar";
 import { CartDrawer, CartItem } from "@/components/marketplace/CartDrawer";
@@ -11,8 +12,11 @@ import { Button } from "@/components/ui/Button";
 
 export default function Home() {
   const { data: session } = useSession();
+  const router = useRouter();
   
   // State
+  const [dbProducts, setDbProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -21,13 +25,58 @@ export default function Home() {
   const [isPaying, setIsPaying] = useState(false);
   const [checkoutTotal, setCheckoutTotal] = useState(0);
 
+  // Auto-redirect admin and factory users
+  useEffect(() => {
+    if (session?.user) {
+      const role = (session.user as any).role;
+      if (role === "admin") {
+        router.push("/admin");
+      } else if (role === "factory") {
+        router.push("/factory");
+      }
+    }
+  }, [session, router]);
+
+  // Fetch products from MongoDB
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const res = await fetch("/api/products");
+        const json = await res.json();
+        if (json.success && json.data) {
+          // Map MongoDB _id to id
+          const mapped = json.data.map((p: any) => ({
+            id: p._id,
+            name: p.name,
+            description: p.description,
+            price: p.price,
+            stockQuantity: p.stockQuantity,
+            categories: p.categories,
+            imageUrls: p.imageUrls,
+            metadata: p.metadata || {},
+          }));
+          setDbProducts(mapped);
+        } else {
+          setDbProducts(PRODUCTS);
+        }
+      } catch (err) {
+        console.error("Error fetching products:", err);
+        setDbProducts(PRODUCTS);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
+
   // Categories list
   const categories = ["All", "Respiratory", "Immunity", "Digestive", "Wellness", "Skin Care"];
 
   // Filtered Products
   const filteredProducts = selectedCategory === "All"
-    ? PRODUCTS
-    : PRODUCTS.filter(p => p.categories.includes(selectedCategory));
+    ? dbProducts
+    : dbProducts.filter(p => p.categories.includes(selectedCategory));
+
 
   // Handlers
   const handleAddToCart = (product: Product, e: React.MouseEvent) => {
@@ -179,63 +228,78 @@ export default function Home() {
         </div>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {filteredProducts.map((product) => (
-            <Link
-              key={product.id}
-              href={`/products/${product.id}`}
-              className="product-card bg-card-surface rounded-xl overflow-hidden border border-soft-sage/20 group flex flex-col h-full hover:shadow-lg transition-all duration-300"
-            >
-              {/* Product Image */}
-              <div className="aspect-square relative overflow-hidden bg-surface-container-low shrink-0">
-                <Image
-                  src={product.imageUrls[0]}
-                  alt={product.name}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  unoptimized
-                />
-                {product.categories[0] && (
-                  <span className="absolute top-4 left-4 bg-warm-ochre text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
-                    {product.categories[0]}
-                  </span>
-                )}
-                {product.metadata.size && (
-                  <span className="absolute bottom-4 right-4 bg-black/60 text-white text-[10px] font-semibold px-2 py-0.5 rounded">
-                    {product.metadata.size}
-                  </span>
-                )}
-              </div>
-
-              {/* Product Info */}
-              <div className="p-5 flex-1 flex flex-col justify-between gap-4">
-                <div>
-                  <h3 className="font-bold text-primary group-hover:text-secondary transition-colors text-base line-clamp-1 mb-1.5">
-                    {product.name}
-                  </h3>
-                  <p className="text-xs text-on-surface-variant line-clamp-2 leading-relaxed">
-                    {product.description}
-                  </p>
+        {loading ? (
+          <div className="flex justify-center items-center py-16">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 border-3 border-secondary border-t-transparent rounded-full animate-spin" />
+              <span className="text-on-surface-variant font-semibold text-sm">Harvesting remedies...</span>
+            </div>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center py-16">
+            <span className="material-symbols-outlined text-5xl text-soft-sage mb-4 block">spa</span>
+            <p className="font-semibold text-primary">No remedies found in this category.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {filteredProducts.map((product) => (
+              <Link
+                key={product.id}
+                href={`/products/${product.id}`}
+                className="product-card bg-card-surface rounded-xl overflow-hidden border border-soft-sage/20 group flex flex-col h-full hover:shadow-lg transition-all duration-300"
+              >
+                {/* Product Image */}
+                <div className="aspect-square relative overflow-hidden bg-surface-container-low shrink-0">
+                  <Image
+                    src={product.imageUrls[0] || "https://lh3.googleusercontent.com/aida-public/AB6AXuB_YiAXZSxHX16NBtaR1knEsJ-5EDiMOvUWVG_Pm8E_nsEHxrUbfGTTjZAH3ZTQ1beCTxhnclnEujqLijfktAj4TCPD_zjK8B2iSJlJUnO7JKAq3x2HIvFeTOTLo1MHMdBdeXj78BKmtpav7kA0n_7aC42x19ZGbHFlmluQNDhEbxru3n0qkJhkXjcMlnrA4tb6SIDp0cC8pm25mrX8ag9_0AeNVw3GJ2SgTXVQzTxzsPob0VVhd1jktpTzc_4BPq2s3ara-_Q-uuQ"}
+                    alt={product.name}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    unoptimized
+                  />
+                  {product.categories[0] && (
+                    <span className="absolute top-4 left-4 bg-warm-ochre text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                      {product.categories[0]}
+                    </span>
+                  )}
+                  {product.metadata?.size && (
+                    <span className="absolute bottom-4 right-4 bg-black/60 text-white text-[10px] font-semibold px-2 py-0.5 rounded">
+                      {product.metadata.size}
+                    </span>
+                  )}
                 </div>
 
-                <div className="flex items-center justify-between mt-auto">
-                  <span className="text-xl font-extrabold text-secondary">
-                    ${product.price.toFixed(2)}
-                  </span>
-                  
-                  <button
-                    onClick={(e) => handleAddToCart(product, e)}
-                    disabled={product.stockQuantity <= 0}
-                    className="p-2 bg-secondary-container/30 text-secondary hover:bg-secondary hover:text-on-secondary rounded-lg transition-all active:scale-90 disabled:opacity-50 disabled:pointer-events-none"
-                  >
-                    <span className="material-symbols-outlined text-lg">add_shopping_cart</span>
-                  </button>
+                {/* Product Info */}
+                <div className="p-5 flex-1 flex flex-col justify-between gap-4">
+                  <div>
+                    <h3 className="font-bold text-primary group-hover:text-secondary transition-colors text-base line-clamp-1 mb-1.5">
+                      {product.name}
+                    </h3>
+                    <p className="text-xs text-on-surface-variant line-clamp-2 leading-relaxed">
+                      {product.description}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-auto">
+                    <span className="text-xl font-extrabold text-secondary">
+                      ${product.price.toFixed(2)}
+                    </span>
+                    
+                    <button
+                      onClick={(e) => handleAddToCart(product, e)}
+                      disabled={product.stockQuantity <= 0}
+                      className="p-2 bg-secondary-container/30 text-secondary hover:bg-secondary hover:text-on-secondary rounded-lg transition-all active:scale-90 disabled:opacity-50 disabled:pointer-events-none"
+                    >
+                      <span className="material-symbols-outlined text-lg">add_shopping_cart</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
       </section>
 
       {/* Trust & Guarantee Section */}

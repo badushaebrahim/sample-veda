@@ -50,29 +50,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ success: false, error: "Product not found" }, { status: 404 });
     }
 
-    // Role-based update permission checks
-    if (userRole === "factory") {
-      // Factory user can only update stock quantity
-      if (body.name !== undefined || body.description !== undefined || body.price !== undefined || body.categories !== undefined || body.imageUrls !== undefined) {
-        return NextResponse.json(
-          { success: false, error: "Factory users are restricted to modifying stock levels only." },
-          { status: 403 }
-        );
-      }
-      if (body.stockQuantity === undefined) {
-        return NextResponse.json({ success: false, error: "stockQuantity field is required" }, { status: 400 });
-      }
-      product.stockQuantity = body.stockQuantity;
-    } else {
-      // Admin user can update everything
-      if (body.name !== undefined) product.name = body.name;
-      if (body.description !== undefined) product.description = body.description;
-      if (body.price !== undefined) product.price = body.price;
-      if (body.stockQuantity !== undefined) product.stockQuantity = body.stockQuantity;
-      if (body.categories !== undefined) product.categories = body.categories;
-      if (body.imageUrls !== undefined) product.imageUrls = body.imageUrls;
-      if (body.metadata !== undefined) product.metadata = body.metadata;
-    }
+    // Both Admin and Factory can edit product details now
+    if (body.name !== undefined) product.name = body.name;
+    if (body.description !== undefined) product.description = body.description;
+    if (body.price !== undefined) product.price = body.price;
+    if (body.stockQuantity !== undefined) product.stockQuantity = body.stockQuantity;
+    if (body.categories !== undefined) product.categories = body.categories;
+    if (body.imageUrls !== undefined) product.imageUrls = body.imageUrls;
+    if (body.metadata !== undefined) product.metadata = body.metadata;
 
     await product.save();
     return NextResponse.json({ success: true, data: product }, { status: 200 });
@@ -84,13 +69,18 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 }
 
-// DELETE /api/products/[id] - Delete product (Admin only)
+// DELETE /api/products/[id] - Delete product (Admin or Factory)
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== "admin") {
+    if (!session) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userRole = (session.user as any).role;
+    if (userRole !== "admin" && userRole !== "factory") {
       return NextResponse.json(
-        { success: false, error: "Unauthorized. Admin role required." },
+        { success: false, error: "Forbidden. Admin or Factory role required." },
         { status: 403 }
       );
     }

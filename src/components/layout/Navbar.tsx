@@ -91,9 +91,24 @@ export const Navbar: React.FC<{ cartCount?: number; onCartClick?: () => void }> 
                         <span className="material-symbols-outlined text-lg">person</span>
                         My Profile
                       </Link>
+                      
+                      {session?.user && (session.user as any).role === "admin" && (
+                        <Link href="/admin" onClick={() => setShowUserMenu(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-on-surface-variant hover:bg-soft-sage/10 hover:text-secondary rounded-lg transition-all">
+                          <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
+                          Admin Dashboard
+                        </Link>
+                      )}
+
+                      {session?.user && (session.user as any).role === "factory" && (
+                        <Link href="/factory" onClick={() => setShowUserMenu(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-on-surface-variant hover:bg-soft-sage/10 hover:text-secondary rounded-lg transition-all">
+                          <span className="material-symbols-outlined text-lg">precision_manufacturing</span>
+                          Factory Console
+                        </Link>
+                      )}
+
                       <button
                         onClick={() => signOut({ callbackUrl: "/" })}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-error hover:bg-error-container/20 rounded-lg transition-all"
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-error hover:bg-error-container/20 rounded-lg transition-all text-left"
                       >
                         <span className="material-symbols-outlined text-lg">logout</span>
                         Sign Out
