@@ -66,7 +66,19 @@ export default function FactoryPage() {
       const orderRes = await fetch("/api/orders");
       const orderJson = await orderRes.json();
       if (orderJson.success && orderJson.data) {
-        setOrders(orderJson.data);
+        const mappedOrders: DashboardOrder[] = orderJson.data.map((o: any) => ({
+          id: o._id,
+          customerName: o.customer?.name || "OAuth User / Guest",
+          customerEmail: o.customer?.email || "N/A",
+          products: o.products || [],
+          totalAmount: o.totalAmount || 0,
+          razorpayOrderId: o.razorpayOrderId,
+          paymentStatus: o.paymentStatus || "pending",
+          shippingStatus: o.shippingStatus || "pending",
+          createdAt: new Date(o.createdAt).toLocaleString("en-IN"),
+          shippingAddress: o.shippingAddress,
+        }));
+        setOrders(mappedOrders);
       }
     } catch (err) {
       console.error("Error fetching factory data:", err);
@@ -280,7 +292,7 @@ export default function FactoryPage() {
                     placeholder="e.g. Karpoora Thulasi DX"
                   />
                   <Input
-                    label="Price ($)"
+                    label="Price (₹)"
                     type="number"
                     step="0.01"
                     required
@@ -340,7 +352,7 @@ export default function FactoryPage() {
                   <label className="text-xs font-bold text-primary uppercase tracking-wider block">
                     Product Reference Image
                   </label>
-                  
+
                   <div className="flex items-center gap-5">
                     <label className="px-4 py-2.5 border border-dashed border-soft-sage/40 rounded-lg text-xs font-bold text-secondary cursor-pointer hover:bg-soft-sage/10 transition-all flex items-center gap-2">
                       <span className="material-symbols-outlined text-lg">cloud_upload</span>
@@ -353,7 +365,7 @@ export default function FactoryPage() {
                         className="hidden"
                       />
                     </label>
-                    
+
                     {imagePreview && (
                       <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-soft-sage/20 bg-white">
                         <img src={imagePreview} alt="Preview" className="object-cover w-full h-full" />
@@ -422,7 +434,7 @@ export default function FactoryPage() {
                   {inspectOrder.products.map(p => (
                     <div key={p.product} className="flex justify-between text-xs font-semibold text-on-surface">
                       <span>{p.name} x {p.quantity}</span>
-                      <span>${(p.priceAtPurchase * p.quantity).toFixed(2)}</span>
+                      <span>₹{(p.priceAtPurchase * p.quantity).toFixed(2)}</span>
                     </div>
                   ))}
                 </div>

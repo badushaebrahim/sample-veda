@@ -1,15 +1,126 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { Input } from "@/components/ui/Input";
+
+interface Address {
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
+interface OrderItem {
+  product: string;
+  name: string;
+  priceAtPurchase: number;
+  quantity: number;
+}
+
+interface Order {
+  _id: string;
+  totalAmount: number;
+  paymentStatus: string;
+  shippingStatus: string;
+  createdAt: string;
+  shippingAddress: Address;
+  products: OrderItem[];
+}
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+
+  // Address and Profile state
+  const [address, setAddress] = useState<Address>({
+    street: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: "",
+  });
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [isSavingAddress, setIsSavingAddress] = useState(false);
+
+  // Orders state
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+  const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/signin?callbackUrl=/profile");
+      return;
+    }
+
+    if (status === "authenticated") {
+      // Fetch Profile Address
+      fetch("/api/users/profile")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.data?.address) {
+            setAddress({
+              street: data.data.address.street || "",
+              city: data.data.address.city || "",
+              state: data.data.address.state || "",
+              zipCode: data.data.address.zipCode || "",
+              country: data.data.address.country || "",
+            });
+          }
+        })
+        .catch((err) => console.error("Error loading profile details:", err));
+
+      // Fetch Order History
+      fetch("/api/orders")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setOrders(data.data || []);
+          }
+          setIsLoadingOrders(false);
+        })
+        .catch((err) => {
+          console.error("Error loading orders:", err);
+          setIsLoadingOrders(false);
+        });
+    }
+  }, [status, router]);
+
+  const handleSaveAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingAddress(true);
+    try {
+      const res = await fetch("/api/users/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsEditingAddress(false);
+      } else {
+        alert(data.error || "Failed to update address");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong");
+    } finally {
+      setIsSavingAddress(false);
+    }
+  };
+
+  const toggleOrderExpand = (orderId: string) => {
+    setExpandedOrders((prev) => ({
+      ...prev,
+      [orderId]: !prev[orderId],
+    }));
+  };
 
   if (status === "loading") {
     return (
@@ -23,7 +134,6 @@ export default function ProfilePage() {
   }
 
   if (status === "unauthenticated") {
-    router.push("/auth/signin?callbackUrl=/profile");
     return null;
   }
 
@@ -32,6 +142,8 @@ export default function ProfilePage() {
   const userName = user?.name || "User";
   const userEmail = user?.email || "";
   const userInitial = userName.charAt(0).toUpperCase();
+
+  const isAddressEmpty = !address.street && !address.city && !address.state && !address.zipCode;
 
   return (
     <div className="min-h-screen bg-surface">
@@ -97,28 +209,223 @@ export default function ProfilePage() {
               </div>
             </div>
 
+            {/* Delivery Address Management */}
+            <div className="bg-card-surface rounded-2xl border border-soft-sage/20 p-8 shadow-sm">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-bold text-primary flex items-center gap-2">
+                  <span className="material-symbols-outlined text-secondary">home_pin</span>
+                  Delivery Address
+                </h2>
+                {!isEditingAddress && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditingAddress(true)}
+                    className="flex items-center gap-1.5 text-xs font-bold border-secondary/35 text-secondary"
+                  >
+                    <span className="material-symbols-outlined text-sm">edit</span>
+                    {isAddressEmpty ? "Add Address" : "Change"}
+                  </Button>
+                )}
+              </div>
+
+              {isEditingAddress ? (
+                <form onSubmit={handleSaveAddress} className="space-y-4 font-sans">
+                  <div>
+                    <label className="text-xs font-bold text-cream-900/60 block mb-1.5 uppercase tracking-wide">Street Address</label>
+                    <Input
+                      required
+                      value={address.street}
+                      onChange={(e) => setAddress({ ...address, street: e.target.value })}
+                      placeholder="Flat No, Apartment, Street Name"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-cream-900/60 block mb-1.5 uppercase tracking-wide">City</label>
+                      <Input
+                        required
+                        value={address.city}
+                        onChange={(e) => setAddress({ ...address, city: e.target.value })}
+                        placeholder="City"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-cream-900/60 block mb-1.5 uppercase tracking-wide">State</label>
+                      <Input
+                        required
+                        value={address.state}
+                        onChange={(e) => setAddress({ ...address, state: e.target.value })}
+                        placeholder="State"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-cream-900/60 block mb-1.5 uppercase tracking-wide">Postal / Zip Code</label>
+                      <Input
+                        required
+                        value={address.zipCode}
+                        onChange={(e) => setAddress({ ...address, zipCode: e.target.value })}
+                        placeholder="Pin Code"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-cream-900/60 block mb-1.5 uppercase tracking-wide">Country</label>
+                      <Input
+                        required
+                        value={address.country}
+                        onChange={(e) => setAddress({ ...address, country: e.target.value })}
+                        placeholder="Country"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <Button type="submit" isLoading={isSavingAddress} className="bg-secondary hover:bg-primary font-bold">
+                      Save Address
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsEditingAddress(false)}
+                      className="border-cream-300 hover:bg-cream-100 text-cream-900/80 font-bold"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <div className="font-sans">
+                  {isAddressEmpty ? (
+                    <div className="p-4 bg-cream-50/50 border border-dashed border-cream-300 rounded-xl text-center">
+                      <span className="material-symbols-outlined text-4xl text-soft-sage mb-2 block">location_off</span>
+                      <p className="text-sm text-cream-900/60 font-medium">No saved delivery address.</p>
+                      <p className="text-[11px] text-cream-900/40 mt-0.5">Please add your address to speed up checkouts.</p>
+                    </div>
+                  ) : (
+                    <div className="p-5 bg-surface-container-low border border-soft-sage/10 rounded-xl flex gap-3 items-start">
+                      <span className="material-symbols-outlined text-secondary text-2xl mt-0.5">location_on</span>
+                      <div className="text-sm text-cream-900/90 leading-relaxed font-semibold">
+                        <p>{address.street}</p>
+                        <p>{address.city}, {address.state} - {address.zipCode}</p>
+                        <p className="text-xs text-cream-900/50 mt-1 uppercase tracking-wider font-bold">{address.country}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Orders */}
             <div className="bg-card-surface rounded-2xl border border-soft-sage/20 p-8 shadow-sm">
               <h2 className="text-lg font-bold text-primary mb-6 flex items-center gap-2">
                 <span className="material-symbols-outlined text-secondary">receipt_long</span>
                 Order History
               </h2>
-              <div className="text-center py-12 text-on-surface-variant">
-                <span className="material-symbols-outlined text-5xl text-soft-sage mb-4 block">inventory_2</span>
-                <p className="font-semibold mb-1">No orders yet</p>
-                <p className="text-sm">Explore our <Link href="/" className="text-secondary font-bold hover:underline">product catalog</Link> to find authentic remedies.</p>
-              </div>
+
+              {isLoadingOrders ? (
+                <div className="flex flex-col items-center justify-center py-12 gap-3">
+                  <div className="w-8 h-8 border-3 border-secondary border-t-transparent rounded-full animate-spin" />
+                  <span className="text-xs text-cream-900/40 font-bold uppercase tracking-wider">Syncing Ledger...</span>
+                </div>
+              ) : orders.length === 0 ? (
+                <div className="text-center py-12 text-on-surface-variant font-sans">
+                  <span className="material-symbols-outlined text-5xl text-soft-sage mb-4 block">inventory_2</span>
+                  <p className="font-semibold mb-1">No orders yet</p>
+                  <p className="text-sm">Explore our <Link href="/" className="text-secondary font-bold hover:underline">product catalog</Link> to find authentic remedies.</p>
+                </div>
+              ) : (
+                <div className="space-y-4 font-sans">
+                  {orders.map((order) => {
+                    const isExpanded = expandedOrders[order._id] || false;
+                    const orderDate = new Date(order.createdAt).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    });
+
+                    return (
+                      <div key={order._id} className="border border-soft-sage/25 rounded-xl overflow-hidden bg-surface-container-low/50">
+                        {/* Summary Header */}
+                        <div
+                          onClick={() => toggleOrderExpand(order._id)}
+                          className="p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 cursor-pointer hover:bg-soft-sage/5 transition-colors"
+                        >
+                          <div>
+                            <span className="text-[10px] font-bold text-cream-900/40 uppercase tracking-wider">ID: #{order._id}</span>
+                            <div className="flex items-center gap-2.5 mt-1">
+                              <span className="font-bold text-sm text-primary-dark">{orderDate}</span>
+                              <span className="text-xs text-cream-900/40">•</span>
+                              <span className="font-extrabold text-sm text-secondary">₹{order.totalAmount.toFixed(2)}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <Badge variant={order.paymentStatus === "paid" ? "success" : "warning"} className="text-[10px] uppercase font-bold">
+                              {order.paymentStatus}
+                            </Badge>
+                            <Badge variant="primary" className="text-[10px] uppercase font-bold bg-primary/10 text-primary border-none">
+                              {order.shippingStatus}
+                            </Badge>
+                            <span className={`material-symbols-outlined text-cream-900/40 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
+                              expand_more
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Detailed Subcontent */}
+                        {isExpanded && (
+                          <div className="px-5 pb-5 pt-3 border-t border-soft-sage/10 bg-white/60 divide-y divide-cream-100">
+                            {/* Items */}
+                            <div className="py-3.5 space-y-2.5">
+                              <h4 className="text-[10px] font-bold text-cream-900/40 uppercase tracking-widest mb-2">Items Ordered</h4>
+                              {order.products.map((item, idx) => (
+                                <div key={idx} className="flex justify-between items-center text-xs font-semibold">
+                                  <div className="text-cream-900">
+                                    {item.name} <span className="text-[10px] text-cream-900/40 font-bold">x{item.quantity}</span>
+                                  </div>
+                                  <div className="text-primary-dark font-bold">
+                                    ₹{(item.priceAtPurchase * item.quantity).toFixed(2)}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Delivery details */}
+                            <div className="py-3.5 flex flex-col md:flex-row gap-4 justify-between">
+                              <div>
+                                <h4 className="text-[10px] font-bold text-cream-900/40 uppercase tracking-widest mb-1.5">Shipping Destination</h4>
+                                <p className="text-xs text-cream-900/80 leading-relaxed font-semibold">
+                                  {order.shippingAddress.street}, {order.shippingAddress.city}, <br />
+                                  {order.shippingAddress.state} - {order.shippingAddress.zipCode} <br />
+                                  <span className="text-[9px] uppercase font-bold text-cream-900/35 tracking-wider">{order.shippingAddress.country}</span>
+                                </p>
+                              </div>
+
+                              <div className="text-xs font-bold text-cream-900/40 self-end">
+                                <p className="flex justify-between md:justify-end gap-4">
+                                  <span>Payment Mode:</span>
+                                  <span className="text-primary-dark font-semibold">Razorpay Checkout</span>
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-6 font-sans">
             <div className="bg-card-surface rounded-2xl border border-soft-sage/20 p-6 shadow-sm">
-              <h3 className="text-sm font-bold text-primary mb-4 uppercase tracking-wider">Quick Actions</h3>
+              <h3 className="text-xs font-bold text-primary mb-4 uppercase tracking-widest">Quick Actions</h3>
               <div className="flex flex-col gap-2">
                 {[
                   { label: "Browse Remedies", icon: "spa", href: "/" },
-                  { label: "Track Orders", icon: "local_shipping", href: "/" },
                 ].map((action) => (
                   <Link key={action.label} href={action.href} className="flex items-center gap-3 p-3 rounded-lg hover:bg-soft-sage/10 transition-all text-on-surface-variant hover:text-secondary group">
                     <span className="material-symbols-outlined text-xl text-soft-sage group-hover:text-secondary transition-colors">{action.icon}</span>

@@ -38,7 +38,7 @@ export const AdminMetrics: React.FC<AdminMetricsProps> = ({ transactions }) => {
   const cardStats = [
     {
       title: "Gross Revenue",
-      value: `$${grossPayments.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: `₹${grossPayments.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       description: "Aggregated gross sales (Razorpay Webhook synced)",
       icon: DollarSign,
       iconColor: "text-emerald-700",
@@ -46,7 +46,7 @@ export const AdminMetrics: React.FC<AdminMetricsProps> = ({ transactions }) => {
     },
     {
       title: "Avg Order Value",
-      value: `$${averageOrderValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: `₹${averageOrderValue.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       description: "Average revenue generated per paid order",
       icon: Award,
       iconColor: "text-gold",
@@ -124,7 +124,7 @@ export const AdminMetrics: React.FC<AdminMetricsProps> = ({ transactions }) => {
                   <TableCell className="text-xs">{tx.createdAt}</TableCell>
                   <TableCell className="font-semibold text-primary-dark text-xs">#{tx.orderId}</TableCell>
                   <TableCell>{tx.customerName}</TableCell>
-                  <TableCell className="font-semibold text-primary-dark">${tx.totalAmount.toFixed(2)}</TableCell>
+                  <TableCell className="font-semibold text-primary-dark">₹{tx.totalAmount.toFixed(2)}</TableCell>
                   <TableCell className="font-mono text-xs">
                     {tx.razorpayPaymentId ? (
                       <span className="font-semibold text-primary-light select-all">{tx.razorpayPaymentId}</span>

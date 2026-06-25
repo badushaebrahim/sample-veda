@@ -93,7 +93,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         {item.name}
                       </h5>
                       <span className="text-xs font-semibold text-secondary">
-                        ${item.price.toFixed(2)}
+                        ₹{item.price.toFixed(2)}
                       </span>
                     </div>
 
@@ -138,7 +138,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               <div className="flex justify-between items-center text-sm font-semibold">
                 <span className="text-cream-900/65">Subtotal</span>
                 <span className="text-lg font-bold text-primary-dark">
-                  ${subtotal.toFixed(2)}
+                  ₹{subtotal.toFixed(2)}
                 </span>
               </div>
               <p className="text-[11px] text-cream-900/40 font-sans leading-tight">

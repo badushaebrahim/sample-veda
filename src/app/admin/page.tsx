@@ -34,7 +34,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [updatingUserRoleIds, setUpdatingUserRoleIds] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
-  
+
   // Modals / Forms
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
@@ -59,7 +59,7 @@ export default function AdminPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch Products
       const prodRes = await fetch("/api/products");
       const prodJson = await prodRes.json();
@@ -75,7 +75,7 @@ export default function AdminPage() {
       const orderJson = await orderRes.json();
       if (orderJson.success && orderJson.data) {
         const orderData = orderJson.data;
-        
+
         // Map to DashboardOrder
         const mappedOrders: DashboardOrder[] = orderData.map((o: any) => ({
           id: o._id,
@@ -461,8 +461,8 @@ export default function AdminPage() {
                             u.role === "admin"
                               ? "danger"
                               : u.role === "factory"
-                              ? "info"
-                              : "default"
+                                ? "info"
+                                : "default"
                           }
                         >
                           {u.role}
@@ -526,7 +526,7 @@ export default function AdminPage() {
                   placeholder="e.g. Karpoora Thulasi DX"
                 />
                 <Input
-                  label="Price ($)"
+                  label="Price (₹)"
                   type="number"
                   step="0.01"
                   required
@@ -586,7 +586,7 @@ export default function AdminPage() {
                 <label className="text-xs font-bold text-primary uppercase tracking-wider block">
                   Product Reference Image
                 </label>
-                
+
                 <div className="flex items-center gap-5">
                   <label className="px-4 py-2.5 border border-dashed border-soft-sage/40 rounded-lg text-xs font-bold text-secondary cursor-pointer hover:bg-soft-sage/10 transition-all flex items-center gap-2">
                     <span className="material-symbols-outlined text-lg">cloud_upload</span>
@@ -599,7 +599,7 @@ export default function AdminPage() {
                       className="hidden"
                     />
                   </label>
-                  
+
                   {imagePreview && (
                     <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-soft-sage/20 bg-white">
                       <img src={imagePreview} alt="Preview" className="object-cover w-full h-full" />
@@ -637,7 +637,7 @@ export default function AdminPage() {
                   onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
                 />
                 <Input
-                  label="Price ($)"
+                  label="Price (₹)"
                   type="number"
                   step="0.01"
                   required

@@ -1,13 +1,30 @@
 import mongoose, { Schema, model, models } from "mongoose";
 
+export interface IAddress {
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
 export interface IUser {
   name: string;
   email: string;
   password?: string; // Optional for OAuth users
   role: "customer" | "factory" | "admin";
+  address?: IAddress;
   createdAt: Date;
   updatedAt: Date;
 }
+
+const AddressSchema = new Schema<IAddress>({
+  street: { type: String, default: "" },
+  city: { type: String, default: "" },
+  state: { type: String, default: "" },
+  zipCode: { type: String, default: "" },
+  country: { type: String, default: "" },
+}, { _id: false });
 
 const UserSchema = new Schema<IUser>(
   {
@@ -32,6 +49,10 @@ const UserSchema = new Schema<IUser>(
       type: String,
       enum: ["customer", "factory", "admin"],
       default: "customer",
+    },
+    address: {
+      type: AddressSchema,
+      default: () => ({}),
     },
   },
   {

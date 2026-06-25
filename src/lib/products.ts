@@ -9,6 +9,7 @@ export interface Product {
   metadata: {
     ingredients?: string[];
     dosage?: string;
+    benefits?: string[];
     size?: string;
   };
 }

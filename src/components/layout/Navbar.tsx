@@ -18,9 +18,7 @@ export const Navbar: React.FC<{ cartCount?: number; onCartClick?: () => void }> 
 
   const navLinks = [
     { label: "Remedies", href: "/", active: true },
-    { label: "Herbs", href: "/" },
-    { label: "Consultations", href: "/" },
-    { label: "Wellness", href: "/" },
+
   ];
 
   return (
@@ -36,11 +34,10 @@ export const Navbar: React.FC<{ cartCount?: number; onCartClick?: () => void }> 
               <Link
                 key={link.label}
                 href={link.href}
-                className={`text-sm font-semibold transition-colors duration-200 ${
-                  link.active
-                    ? "text-secondary border-b-2 border-secondary pb-1"
-                    : "text-on-surface-variant hover:text-secondary"
-                }`}
+                className={`text-sm font-semibold transition-colors duration-200 ${link.active
+                  ? "text-secondary border-b-2 border-secondary pb-1"
+                  : "text-on-surface-variant hover:text-secondary"
+                  }`}
               >
                 {link.label}
               </Link>
@@ -91,7 +88,7 @@ export const Navbar: React.FC<{ cartCount?: number; onCartClick?: () => void }> 
                         <span className="material-symbols-outlined text-lg">person</span>
                         My Profile
                       </Link>
-                      
+
                       {session?.user && (session.user as any).role === "admin" && (
                         <Link href="/admin" onClick={() => setShowUserMenu(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-on-surface-variant hover:bg-soft-sage/10 hover:text-secondary rounded-lg transition-all">
                           <span className="material-symbols-outlined text-lg">admin_panel_settings</span>

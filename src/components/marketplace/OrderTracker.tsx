@@ -152,14 +152,14 @@ export const OrderTracker: React.FC<OrderTrackerProps> = ({
                   <span className="text-xs text-cream-900/50">x{item.quantity}</span>
                 </div>
                 <div className="text-primary-dark font-bold">
-                  ${(item.priceAtPurchase * item.quantity).toFixed(2)}
+                  ₹{(item.priceAtPurchase * item.quantity).toFixed(2)}
                 </div>
               </div>
             ))}
           </div>
           <div className="border-t border-cream-100 pt-2 flex justify-between items-center text-sm font-bold mt-2">
             <span className="text-primary">Total Paid</span>
-            <span className="text-base text-primary-dark">${totalAmount.toFixed(2)}</span>
+            <span className="text-base text-primary-dark">₹{totalAmount.toFixed(2)}</span>
           </div>
         </div>
 

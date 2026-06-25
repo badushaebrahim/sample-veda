@@ -137,7 +137,7 @@ export const OrderManager: React.FC<OrderManagerProps> = ({
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="font-bold text-primary-dark">${order.totalAmount.toFixed(2)}</TableCell>
+                <TableCell className="font-bold text-primary-dark">₹{order.totalAmount.toFixed(2)}</TableCell>
                 <TableCell>
                   <Badge variant={getPaymentStatusVariant(order.paymentStatus)}>
                     {order.paymentStatus}

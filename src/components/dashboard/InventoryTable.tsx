@@ -122,7 +122,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                     ))}
                   </div>
                 </TableCell>
-                <TableCell className="font-semibold">${item.price.toFixed(2)}</TableCell>
+                <TableCell className="font-semibold">₹{item.price.toFixed(2)}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1.5">
                     <Badge variant={status.variant}>{status.label}</Badge>

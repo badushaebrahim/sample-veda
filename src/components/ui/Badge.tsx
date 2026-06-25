@@ -2,13 +2,13 @@ import React from "react";
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?:
-    | "default"
-    | "primary"
-    | "secondary"
-    | "success"
-    | "warning"
-    | "danger"
-    | "info";
+  | "default"
+  | "primary"
+  | "secondary"
+  | "success"
+  | "warning"
+  | "danger"
+  | "info";
 }
 
 export const Badge: React.FC<BadgeProps> = ({

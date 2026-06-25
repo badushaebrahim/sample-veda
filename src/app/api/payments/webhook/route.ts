@@ -15,6 +15,9 @@ export async function POST(req: NextRequest) {
     }
 
     const secret = process.env.RAZORPAY_WEBHOOK_SECRET || "";
+    if (!secret) {
+      return NextResponse.json({ success: false, error: "Razorpay webhook secret is not configured" }, { status: 500 });
+    }
     
     // Cryptographically verify the webhook payload authenticity
     const shasum = crypto.createHmac("sha256", secret);
@@ -79,5 +82,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
