@@ -90,67 +90,6 @@ export const AdminMetrics: React.FC<AdminMetricsProps> = ({ transactions }) => {
           );
         })}
       </div>
-
-      {/* Transaction Logs */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <FileText className="w-5 h-5 text-primary" />
-          <h4 className="text-base font-bold text-primary-dark font-serif">
-            Razorpay Transaction Logs
-          </h4>
-        </div>
-
-        <TableContainer>
-          <TableHead>
-            <TableRow>
-              <TableHeaderCell>Timestamp</TableHeaderCell>
-              <TableHeaderCell>Order Reference</TableHeaderCell>
-              <TableHeaderCell>Customer</TableHeaderCell>
-              <TableHeaderCell>Amount</TableHeaderCell>
-              <TableHeaderCell>Razorpay Payment ID</TableHeaderCell>
-              <TableHeaderCell>Status</TableHeaderCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {transactions.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-cream-900/40 font-semibold">
-                  No transaction records found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              transactions.map((tx) => (
-                <TableRow key={tx.orderId}>
-                  <TableCell className="text-xs">{tx.createdAt}</TableCell>
-                  <TableCell className="font-semibold text-primary-dark text-xs">#{tx.orderId}</TableCell>
-                  <TableCell>{tx.customerName}</TableCell>
-                  <TableCell className="font-semibold text-primary-dark">₹{tx.totalAmount.toFixed(2)}</TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {tx.razorpayPaymentId ? (
-                      <span className="font-semibold text-primary-light select-all">{tx.razorpayPaymentId}</span>
-                    ) : (
-                      <span className="text-cream-900/30">N/A</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        tx.paymentStatus === "paid"
-                          ? "success"
-                          : tx.paymentStatus === "failed"
-                          ? "danger"
-                          : "warning"
-                      }
-                    >
-                      {tx.paymentStatus}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </TableContainer>
-      </div>
     </div>
   );
 };

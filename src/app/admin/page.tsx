@@ -6,10 +6,20 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { InventoryTable } from "@/components/dashboard/InventoryTable";
 import { OrderManager, DashboardOrder } from "@/components/dashboard/OrderManager";
+import { OrderInspectModal } from "@/components/dashboard/OrderInspectModal";
 import { AdminMetrics, TransactionRecord } from "@/components/dashboard/AdminMetrics";
+import { HistoricChart } from "@/components/dashboard/HistoricChart";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
+import {
+  TableContainer,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableHeaderCell,
+  TableCell,
+} from "@/components/ui/Table";
 
 export default function AdminPage() {
   const { data: session, status } = useSession();
@@ -28,10 +38,41 @@ export default function AdminPage() {
   }, [status, session, router]);
 
   // Page States
+  // Products/Inventory State
   const [products, setProducts] = useState<any[]>([]);
+  const [productSearch, setProductSearch] = useState("");
+  const [productStatus, setProductStatus] = useState("All"); // "All" | "instock" | "outofstock"
+  const [productCursor, setProductCursor] = useState<string | null>(null);
+  const [productHasNext, setProductHasNext] = useState(false);
+  const [productLoading, setProductLoading] = useState(false);
+
+  // Orders / Fulfillment Queue State
   const [orders, setOrders] = useState<DashboardOrder[]>([]);
+  const [orderSearch, setOrderSearch] = useState("");
+  const [orderStatus, setOrderStatus] = useState("All"); // "All" | "pending" | "processing" | "shipped" | "delivered"
+  const [orderCursor, setOrderCursor] = useState<string | null>(null);
+  const [orderHasNext, setOrderHasNext] = useState(false);
+  const [orderLoading, setOrderLoading] = useState(false);
+
+  // Transactions State
   const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
+  const [transactionSearch, setTransactionSearch] = useState("");
+  const [transactionStatus, setTransactionStatus] = useState("All"); // "All" | "paid" | "pending" | "failed"
+  const [transactionCursor, setTransactionCursor] = useState<string | null>(null);
+  const [transactionHasNext, setTransactionHasNext] = useState(false);
+  const [transactionLoading, setTransactionLoading] = useState(false);
+
+  // Users State
   const [users, setUsers] = useState<any[]>([]);
+  const [userSearch, setUserSearch] = useState("");
+  const [userRoleFilter, setUserRoleFilter] = useState("All"); // "All" | "customer" | "factory" | "admin"
+  const [userCursor, setUserCursor] = useState<string | null>(null);
+  const [userHasNext, setUserHasNext] = useState(false);
+  const [userLoading, setUserLoading] = useState(false);
+
+  // Overall metrics data (fetched completely for accurate dashboard totals)
+  const [metricsData, setMetricsData] = useState<TransactionRecord[]>([]);
+
   const [updatingUserRoleIds, setUpdatingUserRoleIds] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
 
@@ -55,29 +96,80 @@ export default function AdminPage() {
     imageUrl: "",
   });
 
-  // Fetch Data
-  const fetchData = async () => {
+  // Fetch overall stats metrics
+  const fetchMetrics = async () => {
     try {
-      setLoading(true);
+      const res = await fetch("/api/orders");
+      const json = await res.json();
+      if (json.success && json.data) {
+        const mapped: TransactionRecord[] = json.data.map((o: any) => ({
+          orderId: o._id,
+          customerName: o.customer?.name || "Guest",
+          totalAmount: o.totalAmount || 0,
+          razorpayPaymentId: o.razorpayPaymentId,
+          paymentStatus: o.paymentStatus || "pending",
+          createdAt: new Date(o.createdAt).toLocaleString("en-US"),
+        }));
+        setMetricsData(mapped);
+      }
+    } catch (err) {
+      console.error("Error fetching metrics:", err);
+    }
+  };
 
-      // Fetch Products
-      const prodRes = await fetch("/api/products");
-      const prodJson = await prodRes.json();
-      if (prodJson.success && prodJson.data) {
-        setProducts(prodJson.data.map((p: any) => ({
+  // 1. Fetch Products / Inventory
+  const fetchProducts = async (reset = false) => {
+    try {
+      setProductLoading(true);
+      const limit = 5;
+      const currentCursor = reset ? "" : (productCursor || "");
+
+      let url = `/api/products?limit=${limit}`;
+      if (productSearch) url += `&search=${encodeURIComponent(productSearch)}`;
+      if (productStatus !== "All") url += `&status=${productStatus}`;
+      if (currentCursor) url += `&cursor=${currentCursor}`;
+
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.success && json.data) {
+        const mappedProducts = json.data.map((p: any) => ({
           ...p,
           id: p._id,
-        })));
+        }));
+
+        if (reset) {
+          setProducts(mappedProducts);
+        } else {
+          setProducts((prev) => [...prev, ...mappedProducts]);
+        }
+
+        setProductCursor(json.nextCursor || null);
+        setProductHasNext(json.hasNextPage || false);
       }
+    } catch (err) {
+      console.error("Error fetching products:", err);
+    } finally {
+      setProductLoading(false);
+      setLoading(false);
+    }
+  };
 
-      // Fetch Orders
-      const orderRes = await fetch("/api/orders");
-      const orderJson = await orderRes.json();
-      if (orderJson.success && orderJson.data) {
-        const orderData = orderJson.data;
+  // 2. Fetch Orders / Fulfillment Queue
+  const fetchOrders = async (reset = false) => {
+    try {
+      setOrderLoading(true);
+      const limit = 5;
+      const currentCursor = reset ? "" : (orderCursor || "");
 
-        // Map to DashboardOrder
-        const mappedOrders: DashboardOrder[] = orderData.map((o: any) => ({
+      let url = `/api/orders?limit=${limit}`;
+      if (orderSearch) url += `&search=${encodeURIComponent(orderSearch)}`;
+      if (orderStatus !== "All") url += `&shippingStatus=${orderStatus}`;
+      if (currentCursor) url += `&cursor=${currentCursor}`;
+
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.success && json.data) {
+        const mappedOrders: DashboardOrder[] = json.data.map((o: any) => ({
           id: o._id,
           customerName: o.customer?.name || "OAuth User / Guest",
           customerEmail: o.customer?.email || "N/A",
@@ -88,11 +180,46 @@ export default function AdminPage() {
           shippingStatus: o.shippingStatus || "pending",
           createdAt: new Date(o.createdAt).toLocaleString("en-US"),
           shippingAddress: o.shippingAddress,
+          trackingNumber: o.trackingNumber,
+          carrier: o.carrier,
+          customerNote: o.customerNote,
+          adminNote: o.adminNote,
+          statusHistory: o.statusHistory,
         }));
-        setOrders(mappedOrders);
 
-        // Map to TransactionRecord
-        const mappedTransactions: TransactionRecord[] = orderData.map((o: any) => ({
+        if (reset) {
+          setOrders(mappedOrders);
+        } else {
+          setOrders((prev) => [...prev, ...mappedOrders]);
+        }
+
+        setOrderCursor(json.nextCursor || null);
+        setOrderHasNext(json.hasNextPage || false);
+      }
+    } catch (err) {
+      console.error("Error fetching orders:", err);
+    } finally {
+      setOrderLoading(false);
+      setLoading(false);
+    }
+  };
+
+  // 3. Fetch Transactions / Payment Logs
+  const fetchTransactions = async (reset = false) => {
+    try {
+      setTransactionLoading(true);
+      const limit = 5;
+      const currentCursor = reset ? "" : (transactionCursor || "");
+
+      let url = `/api/orders?limit=${limit}`;
+      if (transactionSearch) url += `&search=${encodeURIComponent(transactionSearch)}`;
+      if (transactionStatus !== "All") url += `&paymentStatus=${transactionStatus}`;
+      if (currentCursor) url += `&cursor=${currentCursor}`;
+
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.success && json.data) {
+        const mappedTransactions: TransactionRecord[] = json.data.map((o: any) => ({
           orderId: o._id,
           customerName: o.customer?.name || "Guest",
           totalAmount: o.totalAmount || 0,
@@ -100,27 +227,90 @@ export default function AdminPage() {
           paymentStatus: o.paymentStatus || "pending",
           createdAt: new Date(o.createdAt).toLocaleString("en-US"),
         }));
-        setTransactions(mappedTransactions);
-      }
 
-      // Fetch Users
-      const userRes = await fetch("/api/users");
-      const userJson = await userRes.json();
-      if (userJson.success && userJson.data) {
-        setUsers(userJson.data);
+        if (reset) {
+          setTransactions(mappedTransactions);
+        } else {
+          setTransactions((prev) => [...prev, ...mappedTransactions]);
+        }
+
+        setTransactionCursor(json.nextCursor || null);
+        setTransactionHasNext(json.hasNextPage || false);
       }
     } catch (err) {
-      console.error("Error fetching admin data:", err);
+      console.error("Error fetching transactions:", err);
     } finally {
+      setTransactionLoading(false);
       setLoading(false);
     }
   };
 
+  // 4. Fetch Users
+  const fetchUsers = async (reset = false) => {
+    try {
+      setUserLoading(true);
+      const limit = 5;
+      const currentCursor = reset ? "" : (userCursor || "");
+
+      let url = `/api/users?limit=${limit}`;
+      if (userSearch) url += `&search=${encodeURIComponent(userSearch)}`;
+      if (userRoleFilter !== "All") url += `&role=${userRoleFilter}`;
+      if (currentCursor) url += `&cursor=${currentCursor}`;
+
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.success && json.data) {
+        if (reset) {
+          setUsers(json.data);
+        } else {
+          setUsers((prev) => [...prev, ...json.data]);
+        }
+
+        setUserCursor(json.nextCursor || null);
+        setUserHasNext(json.hasNextPage || false);
+      }
+    } catch (err) {
+      console.error("Error fetching users:", err);
+    } finally {
+      setUserLoading(false);
+      setLoading(false);
+    }
+  };
+
+  // Trigger metrics stats fetch once
   useEffect(() => {
-    if (status === "authenticated") {
-      fetchData();
+    if (status === "authenticated" && (session?.user as any)?.role === "admin") {
+      fetchMetrics();
     }
   }, [status]);
+
+  // Trigger products fetch when search or filter changes
+  useEffect(() => {
+    if (status === "authenticated" && (session?.user as any)?.role === "admin") {
+      fetchProducts(true);
+    }
+  }, [status, productSearch, productStatus]);
+
+  // Trigger orders fetch when search or filter changes
+  useEffect(() => {
+    if (status === "authenticated" && (session?.user as any)?.role === "admin") {
+      fetchOrders(true);
+    }
+  }, [status, orderSearch, orderStatus]);
+
+  // Trigger transactions fetch when search or filter changes
+  useEffect(() => {
+    if (status === "authenticated" && (session?.user as any)?.role === "admin") {
+      fetchTransactions(true);
+    }
+  }, [status, transactionSearch, transactionStatus]);
+
+  // Trigger users fetch when search or filter changes
+  useEffect(() => {
+    if (status === "authenticated" && (session?.user as any)?.role === "admin") {
+      fetchUsers(true);
+    }
+  }, [status, userSearch, userRoleFilter]);
 
   // Handle image upload to public/uploads
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEdit = false) => {
@@ -199,7 +389,7 @@ export default function AdminPage() {
           dosage: "",
           imageUrl: "",
         });
-        fetchData();
+        fetchProducts(true);
       } else {
         alert("Failed to create product: " + data.error);
       }
@@ -250,7 +440,7 @@ export default function AdminPage() {
       if (data.success) {
         alert("Product updated successfully!");
         setEditingProduct(null);
-        fetchData();
+        fetchProducts(true);
       } else {
         alert("Failed to update product: " + data.error);
       }
@@ -271,7 +461,7 @@ export default function AdminPage() {
       if (data.success) {
         alert("Product deleted successfully.");
         setEditingProduct(null);
-        fetchData();
+        fetchProducts(true);
       } else {
         alert("Failed to delete product: " + data.error);
       }
@@ -310,9 +500,13 @@ export default function AdminPage() {
         body: JSON.stringify({ shippingStatus: newStatus }),
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.data) {
         setOrders((prev) =>
-          prev.map((o) => (o.id === id ? { ...o, shippingStatus: newStatus as any } : o))
+          prev.map((o) => (o.id === id ? {
+            ...o,
+            shippingStatus: data.data.shippingStatus,
+            statusHistory: data.data.statusHistory,
+          } : o))
         );
       } else {
         alert("Failed to update shipping status: " + data.error);
@@ -400,42 +594,269 @@ export default function AdminPage() {
         </div>
 
         {/* Admin Overview & Transactions */}
-        <div className="bg-card-surface border border-soft-sage/20 rounded-2xl p-6 md:p-8 shadow-sm">
-          <AdminMetrics transactions={transactions} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-card-surface border border-soft-sage/20 rounded-2xl p-6 md:p-8 shadow-sm">
+            <AdminMetrics transactions={metricsData} />
+          </div>
+          <HistoricChart />
+        </div>
+
+        {/* Razorpay Transaction Logs */}
+        <div className="bg-card-surface border border-soft-sage/20 rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                <span className="material-symbols-outlined text-secondary">receipt_long</span>
+                Razorpay Transaction Logs
+              </h3>
+              <p className="text-xs text-on-surface-variant mt-1">
+                Verify webhook-synchronized checkout events and statuses.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="flex-1 md:w-72">
+                <Input
+                  value={transactionSearch}
+                  onChange={(e) => setTransactionSearch(e.target.value)}
+                  placeholder="Search order reference or customer..."
+                  className="h-10 text-sm"
+                />
+              </div>
+              <select
+                value={transactionStatus}
+                onChange={(e) => setTransactionStatus(e.target.value)}
+                className="h-10 text-sm bg-surface border border-outline-variant rounded-lg px-3 outline-none text-primary font-semibold"
+              >
+                <option value="All">All Payments</option>
+                <option value="paid">Paid</option>
+                <option value="pending">Pending</option>
+                <option value="failed">Failed</option>
+              </select>
+            </div>
+          </div>
+
+          <TableContainer>
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell>Timestamp</TableHeaderCell>
+                <TableHeaderCell>Order Reference</TableHeaderCell>
+                <TableHeaderCell>Customer</TableHeaderCell>
+                <TableHeaderCell>Amount</TableHeaderCell>
+                <TableHeaderCell>Razorpay Payment ID</TableHeaderCell>
+                <TableHeaderCell>Status</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {transactions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-cream-900/40 font-semibold">
+                    No transaction records found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                transactions.map((tx) => (
+                  <TableRow key={tx.orderId}>
+                    <TableCell className="text-xs">{tx.createdAt}</TableCell>
+                    <TableCell className="font-semibold text-primary-dark text-xs">#{tx.orderId}</TableCell>
+                    <TableCell>{tx.customerName}</TableCell>
+                    <TableCell className="font-semibold text-primary-dark">₹{tx.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {tx.razorpayPaymentId ? (
+                        <span className="font-semibold text-primary-light select-all">{tx.razorpayPaymentId}</span>
+                      ) : (
+                        <span className="text-cream-900/30">N/A</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          tx.paymentStatus === "paid"
+                            ? "success"
+                            : tx.paymentStatus === "failed"
+                            ? "danger"
+                            : "warning"
+                        }
+                      >
+                        {tx.paymentStatus}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </TableContainer>
+
+          {transactionHasNext && (
+            <div className="flex justify-center mt-4">
+              <Button
+                variant="outline"
+                onClick={() => fetchTransactions(false)}
+                disabled={transactionLoading}
+                className="flex items-center gap-2 text-xs py-2 px-4"
+              >
+                {transactionLoading ? (
+                  <span className="w-3.5 h-3.5 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <span className="material-symbols-outlined text-sm">expand_more</span>
+                )}
+                Load More Transactions
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Inventory Tracker & CRUD */}
-        <div className="bg-card-surface border border-soft-sage/20 rounded-2xl p-6 md:p-8 shadow-sm">
+        <div className="bg-card-surface border border-soft-sage/20 rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                <span className="material-symbols-outlined text-secondary">inventory_2</span>
+                Physical Inventory Tracker
+              </h3>
+              <p className="text-xs text-on-surface-variant mt-1">
+                Monitor and adjust stock quantities of remedies in real-time.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="flex-1 md:w-72">
+                <Input
+                  value={productSearch}
+                  onChange={(e) => setProductSearch(e.target.value)}
+                  placeholder="Search products by name..."
+                  className="h-10 text-sm"
+                />
+              </div>
+              <select
+                value={productStatus}
+                onChange={(e) => setProductStatus(e.target.value)}
+                className="h-10 text-sm bg-surface border border-outline-variant rounded-lg px-3 outline-none text-primary font-semibold"
+              >
+                <option value="All">All Stocks</option>
+                <option value="instock">In Stock</option>
+                <option value="outofstock">Out of Stock</option>
+              </select>
+            </div>
+          </div>
+
           <InventoryTable
             items={products}
             onUpdateStock={handleUpdateStock}
             onEditProduct={handleEditClick}
             isAdmin={true}
           />
+
+          {productHasNext && (
+            <div className="flex justify-center mt-4">
+              <Button
+                variant="outline"
+                onClick={() => fetchProducts(false)}
+                disabled={productLoading}
+                className="flex items-center gap-2 text-xs py-2 px-4"
+              >
+                {productLoading ? (
+                  <span className="w-3.5 h-3.5 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <span className="material-symbols-outlined text-sm">expand_more</span>
+                )}
+                Load More Products
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Incoming Orders Manager */}
-        <div className="bg-card-surface border border-soft-sage/20 rounded-2xl p-6 md:p-8 shadow-sm">
-          <h3 className="text-lg font-bold text-primary mb-6 flex items-center gap-2">
-            <span className="material-symbols-outlined text-secondary">local_shipping</span>
-            Fulfillment Queue
-          </h3>
+        <div className="bg-card-surface border border-soft-sage/20 rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                <span className="material-symbols-outlined text-secondary">local_shipping</span>
+                Fulfillment Queue
+              </h3>
+              <p className="text-xs text-on-surface-variant mt-1">
+                Track status and packaging of client orders.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="flex-1 md:w-72">
+                <Input
+                  value={orderSearch}
+                  onChange={(e) => setOrderSearch(e.target.value)}
+                  placeholder="Search orders..."
+                  className="h-10 text-sm"
+                />
+              </div>
+              <select
+                value={orderStatus}
+                onChange={(e) => setOrderStatus(e.target.value)}
+                className="h-10 text-sm bg-surface border border-outline-variant rounded-lg px-3 outline-none text-primary font-semibold"
+              >
+                <option value="All">All Statuses</option>
+                <option value="pending">Pending Execution</option>
+                <option value="processing">Processing (Factory)</option>
+                <option value="shipped">Shipped (In Transit)</option>
+                <option value="delivered">Delivered Successfully</option>
+              </select>
+            </div>
+          </div>
+
           <OrderManager
             orders={orders}
             onUpdateShippingStatus={handleUpdateShippingStatus}
             onViewDetails={(order) => setInspectOrder(order)}
           />
+
+          {orderHasNext && (
+            <div className="flex justify-center mt-4">
+              <Button
+                variant="outline"
+                onClick={() => fetchOrders(false)}
+                disabled={orderLoading}
+                className="flex items-center gap-2 text-xs py-2 px-4"
+              >
+                {orderLoading ? (
+                  <span className="w-3.5 h-3.5 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <span className="material-symbols-outlined text-sm">expand_more</span>
+                )}
+                Load More Orders
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* User Account Controls & Role Elevation */}
-        <div className="bg-card-surface border border-soft-sage/20 rounded-2xl p-6 md:p-8 shadow-sm">
-          <h3 className="text-lg font-bold text-primary mb-6 flex items-center gap-2">
-            <span className="material-symbols-outlined text-secondary">manage_accounts</span>
-            User Roles & Elevation Console
-          </h3>
-          <p className="text-xs text-on-surface-variant mb-6 leading-relaxed">
-            By default, all registered users are created with the <strong>Customer</strong> role. Only administrators can elevate users to <strong>Factory Warehouse Operator</strong> or <strong>Administrator</strong>.
-          </p>
+        <div className="bg-card-surface border border-soft-sage/20 rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                <span className="material-symbols-outlined text-secondary">manage_accounts</span>
+                User Roles & Elevation Console
+              </h3>
+              <p className="text-xs text-on-surface-variant mt-1">
+                Elevate users to Factory Warehouse Operator or Administrator.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="flex-1 md:w-72">
+                <Input
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  placeholder="Search user name or email..."
+                  className="h-10 text-sm"
+                />
+              </div>
+              <select
+                value={userRoleFilter}
+                onChange={(e) => setUserRoleFilter(e.target.value)}
+                className="h-10 text-sm bg-surface border border-outline-variant rounded-lg px-3 outline-none text-primary font-semibold"
+              >
+                <option value="All">All Roles</option>
+                <option value="customer">Customer</option>
+                <option value="factory">Factory</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
 
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-sm">
@@ -499,6 +920,24 @@ export default function AdminPage() {
               </tbody>
             </table>
           </div>
+
+          {userHasNext && (
+            <div className="flex justify-center mt-4">
+              <Button
+                variant="outline"
+                onClick={() => fetchUsers(false)}
+                disabled={userLoading}
+                className="flex items-center gap-2 text-xs py-2 px-4"
+              >
+                {userLoading ? (
+                  <span className="w-3.5 h-3.5 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <span className="material-symbols-outlined text-sm">expand_more</span>
+                )}
+                Load More Users
+              </Button>
+            </div>
+          )}
         </div>
       </main>
 
@@ -736,43 +1175,14 @@ export default function AdminPage() {
 
       {/* Inspect Order Details Modal */}
       {inspectOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-card-surface border border-soft-sage/20 rounded-2xl shadow-xl overflow-hidden animate-scale-up">
-            <div className="bg-primary text-white p-5 flex justify-between items-center">
-              <h4 className="font-bold text-base font-serif">Inspect Dispatch Order #{inspectOrder.id}</h4>
-              <Badge variant={inspectOrder.paymentStatus === 'paid' ? 'success' : 'warning'}>
-                {inspectOrder.paymentStatus}
-              </Badge>
-            </div>
-            <div className="p-5 flex flex-col gap-4 text-sm">
-              <div>
-                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Customer Details</span>
-                <div className="font-bold text-primary">{inspectOrder.customerName}</div>
-                <div className="text-xs text-on-surface-variant">{inspectOrder.customerEmail}</div>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Delivery Address</span>
-                <p className="bg-surface-container-low p-3 rounded-lg border border-soft-sage/10 leading-relaxed text-xs">
-                  {inspectOrder.shippingAddress?.street}, {inspectOrder.shippingAddress?.city}, {inspectOrder.shippingAddress?.state} - {inspectOrder.shippingAddress?.zipCode}
-                </p>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Items for Assembly</span>
-                <div className="flex flex-col gap-1.5 mt-2">
-                  {inspectOrder.products.map(p => (
-                    <div key={p.product} className="flex justify-between text-xs font-semibold text-on-surface">
-                      <span>{p.name} x {p.quantity}</span>
-                      <span>${(p.priceAtPurchase * p.quantity).toFixed(2)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="bg-surface-container-low/50 border-t border-outline-variant/20 px-5 py-4 flex justify-end">
-              <Button size="sm" onClick={() => setInspectOrder(null)}>Close</Button>
-            </div>
-          </div>
-        </div>
+        <OrderInspectModal
+          order={inspectOrder}
+          onClose={() => setInspectOrder(null)}
+          onOrderUpdated={(updated) => {
+            setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+            setInspectOrder(updated);
+          }}
+        />
       )}
     </div>
   );

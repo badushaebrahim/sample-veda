@@ -5,8 +5,8 @@ import { Order } from "@/models/Order";
 import { Product } from "@/models/Product";
 import { authOptions } from "@/lib/auth";
 
-// GET /api/orders - Fetch orders (authenticated users)
-export async function GET() {
+// GET /api/orders - Fetch orders (authenticated users with optional cursor pagination)
+export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -15,20 +15,81 @@ export async function GET() {
 
     await dbConnect();
     const user = session.user as any;
-    let orders;
+    const { searchParams } = new URL(req.url);
+    const limitParam = searchParams.get("limit");
+    const cursor = searchParams.get("cursor");
+    const search = searchParams.get("search");
+    const shippingStatus = searchParams.get("shippingStatus");
+    const paymentStatus = searchParams.get("paymentStatus");
 
+    const query: any = {};
+
+    // Customer security filter
     if (user.role === "customer") {
-      // Customer fetches only their own orders
-      orders = await Order.find({ customer: user.id })
-        .sort({ createdAt: -1 });
-    } else {
-      // Factory/Admin fetches all orders and populates customer details
-      orders = await Order.find()
-        .populate("customer", "name email")
-        .sort({ createdAt: -1 });
+      query.customer = user.id;
     }
 
-    return NextResponse.json({ success: true, data: orders }, { status: 200 });
+    // Shipping status filter
+    if (shippingStatus) {
+      query.shippingStatus = shippingStatus;
+    }
+
+    // Payment status filter
+    if (paymentStatus) {
+      query.paymentStatus = paymentStatus;
+    }
+
+    // Search filter
+    if (search) {
+      const isObjectId = /^[0-9a-fA-F]{24}$/.test(search);
+      if (isObjectId) {
+        query._id = search;
+      } else {
+        // Query users collection first for matches on name/email
+        const User = (await import("@/models/User")).User;
+        const matchingUsers = await User.find({
+          $or: [
+            { name: { $regex: search, $options: "i" } },
+            { email: { $regex: search, $options: "i" } }
+          ]
+        }).select("_id");
+        const userIds = matchingUsers.map(u => u._id);
+
+        query.$or = [
+          { customer: { $in: userIds } },
+          { "products.name": { $regex: search, $options: "i" } }
+        ];
+      }
+    }
+
+    if (limitParam) {
+      const limit = parseInt(limitParam, 10);
+      if (cursor) {
+        query._id = { $lt: cursor };
+      }
+
+      const orders = await Order.find(query)
+        .populate("customer", "name email")
+        .sort({ _id: -1 })
+        .limit(limit + 1);
+
+      const hasNextPage = orders.length > limit;
+      const results = hasNextPage ? orders.slice(0, limit) : orders;
+      const nextCursor = hasNextPage ? results[results.length - 1]._id : null;
+
+      return NextResponse.json({
+        success: true,
+        data: results,
+        nextCursor,
+        hasNextPage
+      }, { status: 200 });
+    } else {
+      const orders = await Order.find(query)
+        .populate("customer", "name email")
+        .sort({ createdAt: -1 });
+
+      return NextResponse.json({ success: true, data: orders }, { status: 200 });
+    }
   } catch (error: any) {
     return NextResponse.json(
       { success: false, error: error.message || "Failed to fetch orders" },
@@ -92,6 +153,14 @@ export async function POST(req: NextRequest) {
       paymentStatus: "pending",
       shippingStatus: "pending",
       shippingAddress,
+      statusHistory: [{
+        status: "pending",
+        updatedBy: user.id,
+        updatedByName: user.name || user.email || "Customer",
+        updatedByEmail: user.email,
+        note: "Order created successfully. Pending facility confirmation.",
+        timestamp: new Date()
+      }]
     });
 
     return NextResponse.json({ success: true, data: newOrder }, { status: 201 });

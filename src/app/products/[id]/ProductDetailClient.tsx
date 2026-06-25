@@ -10,6 +10,38 @@ export default function ProductDetailClient({
 }) {
   const [quantity, setQuantity] = useState(1);
 
+  const handleAddToCart = () => {
+    if (product.stockQuantity <= 0) return;
+
+    let currentCart: any[] = [];
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("cart");
+      if (stored) {
+        try {
+          currentCart = JSON.parse(stored);
+        } catch (e) {
+          console.error("Failed to parse cart", e);
+        }
+      }
+
+      const existingIndex = currentCart.findIndex((item: any) => item.id === product.id);
+      if (existingIndex > -1) {
+        currentCart[existingIndex].quantity += quantity;
+      } else {
+        currentCart.push({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          quantity: quantity,
+          imageUrl: product.imageUrls[0] || "",
+        });
+      }
+
+      localStorage.setItem("cart", JSON.stringify(currentCart));
+      window.location.href = "/?cartOpen=true";
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -160,6 +192,7 @@ export default function ProductDetailClient({
           </button>
         </div>
         <button
+          onClick={handleAddToCart}
           disabled={product.stockQuantity <= 0}
           className="flex-1 py-3.5 bg-secondary text-on-secondary rounded-lg font-semibold hover:bg-primary transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
         >

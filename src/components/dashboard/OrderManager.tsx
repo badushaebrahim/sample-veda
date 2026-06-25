@@ -33,6 +33,20 @@ export interface DashboardOrder {
     zipCode: string;
     country: string;
   };
+  trackingNumber?: string;
+  carrier?: string;
+  customerNote?: string;
+  adminNote?: string;
+  statusHistory?: {
+    status: "pending" | "processing" | "shipped" | "delivered";
+    updatedBy: string;
+    updatedByName: string;
+    updatedByEmail: string;
+    note?: string;
+    trackingNumber?: string;
+    carrier?: string;
+    timestamp: string;
+  }[];
 }
 
 interface OrderManagerProps {
@@ -46,19 +60,7 @@ export const OrderManager: React.FC<OrderManagerProps> = ({
   onUpdateShippingStatus,
   onViewDetails,
 }) => {
-  const [updatingIds, setUpdatingIds] = useState<Record<string, boolean>>({});
 
-  const handleStatusChange = async (id: string, value: string) => {
-    const newStatus = value as "pending" | "processing" | "shipped" | "delivered";
-    setUpdatingIds((prev) => ({ ...prev, [id]: true }));
-    try {
-      await onUpdateShippingStatus(id, newStatus);
-    } catch (e) {
-      console.error("Failed to update shipping status", e);
-    } finally {
-      setUpdatingIds((prev) => ({ ...prev, [id]: false }));
-    }
-  };
 
   const getShippingStatusVariant = (status: string) => {
     switch (status) {
@@ -77,12 +79,7 @@ export const OrderManager: React.FC<OrderManagerProps> = ({
     }
   };
 
-  const shippingOptions = [
-    { value: "pending", label: "Pending Execution" },
-    { value: "processing", label: "Processing (Factory)" },
-    { value: "shipped", label: "Shipped (In Transit)" },
-    { value: "delivered", label: "Delivered Successfully" },
-  ];
+
 
   return (
     <div className="flex flex-col gap-4">
@@ -107,7 +104,6 @@ export const OrderManager: React.FC<OrderManagerProps> = ({
         </TableHead>
         <TableBody>
           {orders.map((order) => {
-            const isUpdating = updatingIds[order.id] || false;
             const itemsCount = order.products.reduce((acc, p) => acc + p.quantity, 0);
 
             return (
@@ -150,22 +146,9 @@ export const OrderManager: React.FC<OrderManagerProps> = ({
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2 max-w-[200px]">
-                    {isUpdating ? (
-                      <div className="flex items-center text-xs text-cream-900/40 gap-1.5 font-bold">
-                        <svg className="animate-spin h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        Syncing...
-                      </div>
-                    ) : (
-                      <Select
-                        options={shippingOptions}
-                        value={order.shippingStatus}
-                        onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                        className="py-1 text-xs px-2 h-8"
-                      />
-                    )}
+                    <Badge variant={getShippingStatusVariant(order.shippingStatus)} className="uppercase tracking-wider text-[10px]">
+                      {order.shippingStatus}
+                    </Badge>
                   </div>
                 </TableCell>
                 <TableCell className="text-right">

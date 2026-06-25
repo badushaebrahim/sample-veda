@@ -7,6 +7,17 @@ export interface IOrderItem {
   quantity: number;
 }
 
+export interface IStatusHistoryItem {
+  status: "pending" | "processing" | "shipped" | "delivered";
+  updatedBy: Types.ObjectId;
+  updatedByName: string;
+  updatedByEmail: string;
+  note?: string;
+  trackingNumber?: string;
+  carrier?: string;
+  timestamp: Date;
+}
+
 export interface IOrder {
   customer: Types.ObjectId;
   products: IOrderItem[];
@@ -22,6 +33,11 @@ export interface IOrder {
     zipCode: string;
     country: string;
   };
+  trackingNumber?: string;
+  carrier?: string;
+  customerNote?: string;
+  adminNote?: string;
+  statusHistory: IStatusHistoryItem[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,6 +61,34 @@ const OrderItemSchema = new Schema<IOrderItem>({
     type: Number,
     required: true,
     min: 1,
+  },
+});
+
+const StatusHistoryItemSchema = new Schema<IStatusHistoryItem>({
+  status: {
+    type: String,
+    enum: ["pending", "processing", "shipped", "delivered"],
+    required: true,
+  },
+  updatedBy: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  updatedByName: {
+    type: String,
+    required: true,
+  },
+  updatedByEmail: {
+    type: String,
+    required: true,
+  },
+  note: { type: String },
+  trackingNumber: { type: String },
+  carrier: { type: String },
+  timestamp: {
+    type: Date,
+    default: Date.now,
   },
 });
 
@@ -88,6 +132,11 @@ const OrderSchema = new Schema<IOrder>(
       zipCode: { type: String, required: true },
       country: { type: String, default: "India" },
     },
+    trackingNumber: { type: String },
+    carrier: { type: String },
+    customerNote: { type: String },
+    adminNote: { type: String },
+    statusHistory: [StatusHistoryItemSchema],
   },
   {
     timestamps: true,

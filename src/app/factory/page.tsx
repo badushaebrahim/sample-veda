@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { InventoryTable, InventoryItem } from "@/components/dashboard/InventoryTable";
 import { OrderManager, DashboardOrder } from "@/components/dashboard/OrderManager";
+import { OrderInspectModal } from "@/components/dashboard/OrderInspectModal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -27,8 +28,22 @@ export default function FactoryPage() {
   }, [status, session, router]);
 
   // Page States
+  // Products/Inventory State
   const [products, setProducts] = useState<any[]>([]);
+  const [productSearch, setProductSearch] = useState("");
+  const [productStatus, setProductStatus] = useState("All"); // "All" | "instock" | "outofstock"
+  const [productCursor, setProductCursor] = useState<string | null>(null);
+  const [productHasNext, setProductHasNext] = useState(false);
+  const [productLoading, setProductLoading] = useState(false);
+
+  // Orders State
   const [orders, setOrders] = useState<DashboardOrder[]>([]);
+  const [orderSearch, setOrderSearch] = useState("");
+  const [orderStatus, setOrderStatus] = useState("All"); // "All" | "pending" | "processing" | "shipped" | "delivered"
+  const [orderCursor, setOrderCursor] = useState<string | null>(null);
+  const [orderHasNext, setOrderHasNext] = useState(false);
+  const [orderLoading, setOrderLoading] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [inspectOrder, setInspectOrder] = useState<DashboardOrder | null>(null);
 
@@ -48,25 +63,57 @@ export default function FactoryPage() {
     imageUrl: "",
   });
 
-  // Fetch Data
-  const fetchData = async () => {
+  const fetchProducts = async (reset = false) => {
     try {
-      setLoading(true);
-      // Fetch Products
-      const prodRes = await fetch("/api/products");
-      const prodJson = await prodRes.json();
-      if (prodJson.success && prodJson.data) {
-        setProducts(prodJson.data.map((p: any) => ({
-          ...p,
-          id: p._id, // map Mongo ID for table
-        })));
-      }
+      setProductLoading(true);
+      const limit = 5;
+      const currentCursor = reset ? "" : (productCursor || "");
+      
+      let url = `/api/products?limit=${limit}`;
+      if (productSearch) url += `&search=${encodeURIComponent(productSearch)}`;
+      if (productStatus !== "All") url += `&status=${productStatus}`;
+      if (currentCursor) url += `&cursor=${currentCursor}`;
 
-      // Fetch Orders
-      const orderRes = await fetch("/api/orders");
-      const orderJson = await orderRes.json();
-      if (orderJson.success && orderJson.data) {
-        const mappedOrders: DashboardOrder[] = orderJson.data.map((o: any) => ({
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.success && json.data) {
+        const mappedProducts = json.data.map((p: any) => ({
+          ...p,
+          id: p._id,
+        }));
+        
+        if (reset) {
+          setProducts(mappedProducts);
+        } else {
+          setProducts((prev) => [...prev, ...mappedProducts]);
+        }
+        
+        setProductCursor(json.nextCursor || null);
+        setProductHasNext(json.hasNextPage || false);
+      }
+    } catch (err) {
+      console.error("Error fetching products:", err);
+    } finally {
+      setProductLoading(false);
+      setLoading(false);
+    }
+  };
+
+  const fetchOrders = async (reset = false) => {
+    try {
+      setOrderLoading(true);
+      const limit = 5;
+      const currentCursor = reset ? "" : (orderCursor || "");
+      
+      let url = `/api/orders?limit=${limit}`;
+      if (orderSearch) url += `&search=${encodeURIComponent(orderSearch)}`;
+      if (orderStatus !== "All") url += `&shippingStatus=${orderStatus}`;
+      if (currentCursor) url += `&cursor=${currentCursor}`;
+
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.success && json.data) {
+        const mappedOrders: DashboardOrder[] = json.data.map((o: any) => ({
           id: o._id,
           customerName: o.customer?.name || "OAuth User / Guest",
           customerEmail: o.customer?.email || "N/A",
@@ -77,21 +124,43 @@ export default function FactoryPage() {
           shippingStatus: o.shippingStatus || "pending",
           createdAt: new Date(o.createdAt).toLocaleString("en-IN"),
           shippingAddress: o.shippingAddress,
+          trackingNumber: o.trackingNumber,
+          carrier: o.carrier,
+          customerNote: o.customerNote,
+          adminNote: o.adminNote,
+          statusHistory: o.statusHistory,
         }));
-        setOrders(mappedOrders);
+        
+        if (reset) {
+          setOrders(mappedOrders);
+        } else {
+          setOrders((prev) => [...prev, ...mappedOrders]);
+        }
+        
+        setOrderCursor(json.nextCursor || null);
+        setOrderHasNext(json.hasNextPage || false);
       }
     } catch (err) {
-      console.error("Error fetching factory data:", err);
+      console.error("Error fetching orders:", err);
     } finally {
+      setOrderLoading(false);
       setLoading(false);
     }
   };
 
+  // Trigger products fetch when search or filter changes
   useEffect(() => {
     if (status === "authenticated") {
-      fetchData();
+      fetchProducts(true);
     }
-  }, [status]);
+  }, [status, productSearch, productStatus]);
+
+  // Trigger orders fetch when search or filter changes
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetchOrders(true);
+    }
+  }, [status, orderSearch, orderStatus]);
 
   // Handle image upload to public/uploads
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -163,7 +232,7 @@ export default function FactoryPage() {
           dosage: "",
           imageUrl: "",
         });
-        fetchData(); // Refresh list
+        fetchProducts(true); // Refresh products list
       } else {
         alert("Failed to create product: " + data.error);
       }
@@ -203,9 +272,13 @@ export default function FactoryPage() {
         body: JSON.stringify({ shippingStatus: newStatus }),
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.data) {
         setOrders((prev) =>
-          prev.map((o) => (o.id === id ? { ...o, shippingStatus: newStatus as any } : o))
+          prev.map((o) => (o.id === id ? {
+            ...o,
+            shippingStatus: data.data.shippingStatus,
+            statusHistory: data.data.statusHistory,
+          } : o))
         );
       } else {
         alert("Failed to update status: " + data.error);
@@ -384,67 +457,134 @@ export default function FactoryPage() {
         )}
 
         {/* Physical Inventory Tracker */}
-        <div className="bg-card-surface border border-soft-sage/20 rounded-2xl p-6 md:p-8 shadow-sm">
+        <div className="bg-card-surface border border-soft-sage/20 rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                <span className="material-symbols-outlined text-secondary">inventory_2</span>
+                Physical Inventory Tracker
+              </h3>
+              <p className="text-xs text-on-surface-variant mt-1">
+                Monitor and adjust stock quantities of remedies in real-time.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="flex-1 md:w-72">
+                <Input
+                  value={productSearch}
+                  onChange={(e) => setProductSearch(e.target.value)}
+                  placeholder="Search products by name..."
+                  className="h-10 text-sm"
+                />
+              </div>
+              <select
+                value={productStatus}
+                onChange={(e) => setProductStatus(e.target.value)}
+                className="h-10 text-sm bg-surface border border-outline-variant rounded-lg px-3 outline-none text-primary font-semibold"
+              >
+                <option value="All">All Stocks</option>
+                <option value="instock">In Stock</option>
+                <option value="outofstock">Out of Stock</option>
+              </select>
+            </div>
+          </div>
+
           <InventoryTable
             items={products}
             onUpdateStock={handleUpdateStock}
             isAdmin={true} // Allow factory to view detail edit buttons or update stock
           />
+
+          {productHasNext && (
+            <div className="flex justify-center mt-4">
+              <Button
+                variant="outline"
+                onClick={() => fetchProducts(false)}
+                disabled={productLoading}
+                className="flex items-center gap-2 text-xs py-2 px-4"
+              >
+                {productLoading ? (
+                  <span className="w-3.5 h-3.5 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <span className="material-symbols-outlined text-sm">expand_more</span>
+                )}
+                Load More Products
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Incoming Orders Manager */}
-        <div className="bg-card-surface border border-soft-sage/20 rounded-2xl p-6 md:p-8 shadow-sm">
-          <h3 className="text-lg font-bold text-primary mb-6 flex items-center gap-2">
-            <span className="material-symbols-outlined text-secondary">local_shipping</span>
-            Factory Dispatch Log
-          </h3>
+        <div className="bg-card-surface border border-soft-sage/20 rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                <span className="material-symbols-outlined text-secondary">local_shipping</span>
+                Factory Dispatch Log
+              </h3>
+              <p className="text-xs text-on-surface-variant mt-1">
+                Process customer checkouts and update packaging/shipping logs.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="flex-1 md:w-72">
+                <Input
+                  value={orderSearch}
+                  onChange={(e) => setOrderSearch(e.target.value)}
+                  placeholder="Search orders..."
+                  className="h-10 text-sm"
+                />
+              </div>
+              <select
+                value={orderStatus}
+                onChange={(e) => setOrderStatus(e.target.value)}
+                className="h-10 text-sm bg-surface border border-outline-variant rounded-lg px-3 outline-none text-primary font-semibold"
+              >
+                <option value="All">All Statuses</option>
+                <option value="pending">Pending Execution</option>
+                <option value="processing">Processing (Factory)</option>
+                <option value="shipped">Shipped (In Transit)</option>
+                <option value="delivered">Delivered Successfully</option>
+              </select>
+            </div>
+          </div>
+
           <OrderManager
             orders={orders}
             onUpdateShippingStatus={handleUpdateShippingStatus}
             onViewDetails={(order) => setInspectOrder(order)}
           />
+
+          {orderHasNext && (
+            <div className="flex justify-center mt-4">
+              <Button
+                variant="outline"
+                onClick={() => fetchOrders(false)}
+                disabled={orderLoading}
+                className="flex items-center gap-2 text-xs py-2 px-4"
+              >
+                {orderLoading ? (
+                  <span className="w-3.5 h-3.5 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <span className="material-symbols-outlined text-sm">expand_more</span>
+                )}
+                Load More Orders
+              </Button>
+            </div>
+          )}
         </div>
       </main>
 
       {/* Inspect Order Details Modal */}
       {inspectOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-card-surface border border-soft-sage/20 rounded-2xl shadow-xl overflow-hidden animate-scale-up">
-            <div className="bg-primary text-white p-5 flex justify-between items-center">
-              <h4 className="font-bold text-base font-serif">Inspect Dispatch Order #{inspectOrder.id}</h4>
-              <Badge variant={inspectOrder.paymentStatus === 'paid' ? 'success' : 'warning'}>
-                {inspectOrder.paymentStatus}
-              </Badge>
-            </div>
-            <div className="p-5 flex flex-col gap-4 text-sm">
-              <div>
-                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Customer Details</span>
-                <div className="font-bold text-primary">{inspectOrder.customerName}</div>
-                <div className="text-xs text-on-surface-variant">{inspectOrder.customerEmail}</div>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Delivery Address</span>
-                <p className="bg-surface-container-low p-3 rounded-lg border border-soft-sage/10 leading-relaxed text-xs">
-                  {inspectOrder.shippingAddress?.street}, {inspectOrder.shippingAddress?.city}, {inspectOrder.shippingAddress?.state} - {inspectOrder.shippingAddress?.zipCode}
-                </p>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Items for Assembly</span>
-                <div className="flex flex-col gap-1.5 mt-2">
-                  {inspectOrder.products.map(p => (
-                    <div key={p.product} className="flex justify-between text-xs font-semibold text-on-surface">
-                      <span>{p.name} x {p.quantity}</span>
-                      <span>₹{(p.priceAtPurchase * p.quantity).toFixed(2)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="bg-surface-container-low/50 border-t border-outline-variant/20 px-5 py-4 flex justify-end">
-              <Button size="sm" onClick={() => setInspectOrder(null)}>Close</Button>
-            </div>
-          </div>
-        </div>
+        <OrderInspectModal
+          order={inspectOrder}
+          onClose={() => setInspectOrder(null)}
+          onOrderUpdated={(updated) => {
+            setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+            setInspectOrder(updated);
+          }}
+        />
       )}
     </div>
   );

@@ -29,6 +29,39 @@ export default function StorefrontClient({
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Load cart from localStorage on mount & check query params
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("cart");
+      if (stored) {
+        try {
+          setCart(JSON.parse(stored));
+        } catch (e) {
+          console.error("Failed to parse cart from localStorage", e);
+        }
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("cartOpen") === "true") {
+        setIsCartOpen(true);
+        // Clean query parameter from address bar
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+    }
+  }, []);
+
+  // Save cart to localStorage on updates
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (cart.length > 0) {
+        localStorage.setItem("cart", JSON.stringify(cart));
+      } else {
+        localStorage.removeItem("cart");
+      }
+    }
+  }, [cart]);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [checkoutTotal, setCheckoutTotal] = useState(0);
@@ -462,9 +495,17 @@ export default function StorefrontClient({
                             : order.shippingStatus || "Pending"}
                         </span>
                       </div>
-                      <span className="text-primary font-bold">
-                        ₹{order.totalAmount.toFixed(2)}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <Link
+                          href={`/orders/${order._id}`}
+                          className="text-[10px] text-secondary hover:text-primary font-bold underline transition-colors"
+                        >
+                          View Details
+                        </Link>
+                        <span className="text-primary font-bold">
+                          ₹{order.totalAmount.toFixed(2)}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 );

@@ -23,6 +23,12 @@ interface OrderItem {
   quantity: number;
 }
 
+interface StatusHistoryItem {
+  status: string;
+  note?: string;
+  timestamp: string;
+}
+
 interface Order {
   _id: string;
   totalAmount: number;
@@ -31,6 +37,10 @@ interface Order {
   createdAt: string;
   shippingAddress: Address;
   products: OrderItem[];
+  trackingNumber?: string;
+  carrier?: string;
+  customerNote?: string;
+  statusHistory?: StatusHistoryItem[];
 }
 
 export default function ProfilePage() {
@@ -120,6 +130,38 @@ export default function ProfilePage() {
       ...prev,
       [orderId]: !prev[orderId],
     }));
+  };
+
+  const handleReorder = (order: Order) => {
+    let currentCart: any[] = [];
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("cart");
+      if (stored) {
+        try {
+          currentCart = JSON.parse(stored);
+        } catch (e) {
+          console.error("Failed to parse cart", e);
+        }
+      }
+
+      for (const item of order.products) {
+        const existingIndex = currentCart.findIndex((ci: any) => ci.id === item.product);
+        if (existingIndex > -1) {
+          currentCart[existingIndex].quantity += item.quantity;
+        } else {
+          currentCart.push({
+            id: item.product,
+            name: item.name,
+            price: item.priceAtPurchase,
+            quantity: item.quantity,
+            stockQuantity: 99,
+          });
+        }
+      }
+
+      localStorage.setItem("cart", JSON.stringify(currentCart));
+      window.location.href = "/?cartOpen=true";
+    }
   };
 
   if (status === "loading") {
@@ -402,12 +444,113 @@ export default function ProfilePage() {
                                 </p>
                               </div>
 
-                              <div className="text-xs font-bold text-cream-900/40 self-end">
+                              <div className="text-xs font-bold text-cream-900/40 flex flex-col items-end gap-2">
                                 <p className="flex justify-between md:justify-end gap-4">
                                   <span>Payment Mode:</span>
                                   <span className="text-primary-dark font-semibold">Razorpay Checkout</span>
                                 </p>
+                                <div className="flex gap-2 mt-1">
+                                  <Link
+                                    href={`/orders/${order._id}`}
+                                    className="px-4 py-2 border border-secondary/20 hover:border-secondary text-secondary hover:bg-secondary/5 font-bold rounded-lg text-xs transition-all flex items-center gap-1"
+                                  >
+                                    <span className="material-symbols-outlined text-[14px] font-bold">open_in_new</span>
+                                    Track Page
+                                  </Link>
+                                  <button
+                                    onClick={() => handleReorder(order)}
+                                    className="px-4 py-2 bg-secondary hover:bg-primary text-on-secondary font-bold rounded-lg text-xs transition-all flex items-center gap-1.5 active:scale-95 shadow-sm"
+                                  >
+                                    <span className="material-symbols-outlined text-[14px] font-bold">autorenew</span>
+                                    Buy Again
+                                  </button>
+                                </div>
                               </div>
+                            </div>
+
+                            {/* Shipment tracking and notes */}
+                            {(order.trackingNumber || order.carrier || order.customerNote) && (
+                              <div className="py-3.5 space-y-2">
+                                <h4 className="text-[10px] font-bold text-cream-900/40 uppercase tracking-widest">Shipment Tracking Info</h4>
+                                <div className="bg-surface-container-low/70 p-3.5 rounded-xl border border-soft-sage/10 space-y-2.5 text-xs text-on-surface">
+                                  {order.carrier && (
+                                    <div className="flex gap-2">
+                                      <span className="font-bold text-primary">Carrier Partner:</span>
+                                      <span className="font-semibold text-on-surface-variant">{order.carrier}</span>
+                                    </div>
+                                  )}
+                                  {order.trackingNumber && (
+                                    <div className="flex gap-2">
+                                      <span className="font-bold text-primary">Tracking Number:</span>
+                                      <span className="font-mono text-secondary font-bold bg-secondary/5 px-2 py-0.5 rounded border border-secondary/10 select-all">{order.trackingNumber}</span>
+                                    </div>
+                                  )}
+                                  {order.customerNote && (
+                                    <div className="mt-1 pt-1.5 border-t border-soft-sage/5">
+                                      <span className="font-bold text-primary block mb-1 text-[10px] uppercase tracking-wider">Updates from Facility:</span>
+                                      <p className="italic text-on-surface-variant font-medium bg-white/40 p-2.5 rounded border border-soft-sage/5">
+                                        "{order.customerNote}"
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Progress Flow timeline */}
+                            <div className="py-3.5 space-y-3.5">
+                              <h4 className="text-[10px] font-bold text-cream-900/40 uppercase tracking-widest">Execution Progress Flow</h4>
+                              
+                              <div className="grid grid-cols-4 gap-2 text-center max-w-md mx-auto py-2">
+                                {["pending", "processing", "shipped", "delivered"].map((step, idx) => {
+                                  const stepLabels = {
+                                    pending: "Ordered",
+                                    processing: "Preparing",
+                                    shipped: "Shipped",
+                                    delivered: "Delivered",
+                                  };
+                                  const statusSteps = ["pending", "processing", "shipped", "delivered"];
+                                  const currentStepIndex = statusSteps.indexOf(order.shippingStatus || "pending");
+                                  const isCompleted = idx <= currentStepIndex;
+                                  const isActive = idx === currentStepIndex;
+                                  
+                                  return (
+                                    <div key={step} className="flex flex-col items-center">
+                                      <div className={`w-7 h-7 rounded-full flex items-center justify-center border font-bold text-xs transition-all ${
+                                        isCompleted ? "bg-primary border-primary text-cream-50" : "bg-white border-cream-200 text-cream-900/30"
+                                      } ${isActive ? "ring-2 ring-primary/20 scale-105" : ""}`}>
+                                        {idx + 1}
+                                      </div>
+                                      <span className={`text-[10px] mt-1.5 font-bold ${isCompleted ? "text-primary-dark" : "text-cream-900/30"}`}>
+                                        {stepLabels[step as keyof typeof stepLabels]}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              {order.statusHistory && order.statusHistory.length > 0 ? (
+                                <div className="space-y-3 pl-2 mt-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-soft-sage/10">
+                                  {order.statusHistory.map((history: any, idx: number) => (
+                                    <div key={idx} className="flex gap-4 text-xs relative pl-6">
+                                      <div className="absolute left-[9px] top-1.5 w-1.5 h-1.5 rounded-full bg-secondary shrink-0" />
+                                      <div className="flex-grow">
+                                        <div className="flex items-center justify-between font-bold">
+                                          <span className="text-primary capitalize">{history.status}</span>
+                                          <span className="text-[10px] text-cream-900/40 font-normal">{new Date(history.timestamp).toLocaleString("en-IN")}</span>
+                                        </div>
+                                        {history.note && (
+                                          <p className="mt-1 text-xs text-on-surface bg-white/40 p-2 rounded italic">
+                                            "{history.note}"
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-[11px] text-cream-900/40 italic pl-2">Pending confirmation and assembly.</p>
+                              )}
                             </div>
                           </div>
                         )}
